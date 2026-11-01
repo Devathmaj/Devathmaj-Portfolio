@@ -1,3 +1,5 @@
+import { apiFetch } from './api/client';
+
 const CONTACT_ENDPOINT = '/api/contact';
 const TURNSTILE_SITE_KEY = '0x4AAAAAAEtv53G9bikXI2ca';
 
@@ -171,7 +173,7 @@ export default class ContactForm {
       const subjectInput = String(formData.get('subject') || '').trim();
       const message = String(formData.get('message') || '').trim();
 
-      const response = await fetch(CONTACT_ENDPOINT, {
+      const response = await apiFetch(CONTACT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -6,6 +6,8 @@
  * VinylPlayer adopts this element and this shared state whenever it mounts.
  */
 
+import { assetManager } from './assets/AssetManager';
+
 const VOLUME_KEY = 'devathmaj-portfolio:vinyl-volume';
 const MUTED_KEY = 'devathmaj-portfolio:vinyl-muted';
 const PLAYBACK_KEY = 'devathmaj-portfolio:vinyl-playback';
@@ -218,7 +220,8 @@ function loadSharedTrack(track, { autoplay = false } = {}) {
 
   playback.currentId = track.id;
   playback.session = true;
-  audio.src = sources[0].src;
+  audio.preload = 'metadata';
+  audio.src = assetManager.getPlaybackUrl(sources[0].src);
   audio.load();
   audio.volume = playback.muted ? 0 : playback.volume;
   if (autoplay) {
@@ -262,7 +265,8 @@ export function restorePlayback() {
 
   audio.volume = playback.muted ? 0 : playback.volume;
   audio.muted = playback.muted;
-  audio.src = sources[0].src;
+  audio.preload = 'metadata';
+  audio.src = assetManager.getPlaybackUrl(sources[0].src);
   audio.load();
 
   const resumeAt = typeof saved.currentTime === 'number' && Number.isFinite(saved.currentTime)
@@ -447,7 +451,8 @@ export function getAudio() {
 
   const audio = document.createElement('audio');
   audio.className = 'vinyl-audio';
-  audio.preload = 'metadata';
+  // Nothing is fetched until the visitor selects or resumes a record.
+  audio.preload = 'none';
   audio.volume = playback.muted ? 0 : playback.volume;
   audio.muted = playback.muted;
   document.body.append(audio);

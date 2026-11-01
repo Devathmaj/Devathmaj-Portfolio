@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 
 import { getAudio, playback, syncVinylState, syncVinylDock } from './vinylAudio';
+import { assetManager } from './assets/AssetManager';
 
 /** @param {number} seconds */
 const timeLabel = (seconds) => {
@@ -186,7 +187,12 @@ export default class VinylPlayer {
     const currentSource = this.audio.currentSrc || this.audio.src;
     const matched = this.sources.findIndex((source) => {
       try {
-        return new URL(source.src, window.location.href).href === currentSource;
+        const plain = new URL(source.src, window.location.href).href;
+        const cached = new URL(
+          assetManager.getPlaybackUrl(source.src),
+          window.location.href,
+        ).href;
+        return currentSource === plain || currentSource === cached;
       } catch {
         return false;
       }
@@ -316,7 +322,8 @@ export default class VinylPlayer {
     this.find('[data-current-time]').textContent = '0:00';
     this.find('[data-duration]').textContent = '--:--';
     if (!this.sources.length) { this.fail('This browser cannot play this record. Please try another.'); return; }
-    this.audio.src = this.sources[0].src;
+    this.audio.preload = 'metadata';
+    this.audio.src = assetManager.getPlaybackUrl(this.sources[0].src);
     this.audio.load();
   }
 
@@ -328,7 +335,8 @@ export default class VinylPlayer {
     this.syncControls();
     const source = this.sources?.[++this.sourceIndex];
     if (source) {
-      this.audio.src = source.src;
+      this.audio.preload = 'metadata';
+      this.audio.src = assetManager.getPlaybackUrl(source.src);
       this.audio.load();
       if (this.wantsPlayback) this.startPlayback();
     } else {
@@ -350,6 +358,7 @@ export default class VinylPlayer {
 
   async startPlayback() {
     if (this.destroyed || !this.sources?.length) return;
+    assetManager.prioritizeTrack(this.tracks[this.current].id);
     const attempt = ++this.playAttempt;
     this.wantsPlayback = true;
     this.shared.session = true;
@@ -394,6 +403,7 @@ export default class VinylPlayer {
   select(index) {
     if (this.destroyed) return;
     this.requested = index;
+    assetManager.prioritizeTrack(this.tracks[index].id);
     this.syncControls();
     if (this.busy) {
       this.setStatus(`Next on the platter: ${this.tracks[index].title}.`);
@@ -587,7 +597,8 @@ export default class VinylPlayer {
       this.playing = true;
       this.wantsPlayback = true;
       if (this.sources.length) {
-        this.audio.src = this.sources[0].src;
+        this.audio.preload = 'metadata';
+        this.audio.src = assetManager.getPlaybackUrl(this.sources[0].src);
         this.audio.load();
       }
     }

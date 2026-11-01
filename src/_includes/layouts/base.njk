@@ -8,6 +8,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="site-build" content="{{ build.id }}">
+    <meta name="site-build-dev" content="{{ 'true' if build.dev else 'false' }}">
     {% if meta.title %}
     <title>{{ meta.title }}</title>
     {% else %}

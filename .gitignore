@@ -13,6 +13,9 @@ _site
 .env.*
 !.env.example
 
+# Generated build identity shared by Cloudflare Functions
+/functions/_shared/
+
 # Editor and agent tooling
 /.vscode/
 /.idea/

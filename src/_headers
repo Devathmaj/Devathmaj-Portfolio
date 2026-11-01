@@ -9,3 +9,16 @@
 
 /api/*
   Cache-Control: no-store
+
+# The worker script is checked for updates on navigation; bypass the HTTP cache
+# so a new deployment is discovered immediately.
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+
+# Manifests are deployment facts, never stale assets.
+/assets/manifest.json
+  Cache-Control: no-store
+
+/assets/music.json
+  Cache-Control: no-store

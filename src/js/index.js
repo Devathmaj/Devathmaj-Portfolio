@@ -12,6 +12,7 @@ import { DiscoveryStore } from './DiscoveryStore';
 import DiscoveryUI from './DiscoveryUI';
 import QuoteShuffle from './QuoteShuffle';
 import { restorePlayback, syncVinylDock } from './vinylAudio';
+import { assetManager } from './assets/AssetManager';
 
 import { updateFooterBreadcrumbs } from './utils/updateFooterBreadcrumbs';
 
@@ -44,6 +45,8 @@ const refreshSiteNavigations = () => {
 };
 refreshSiteNavigations();
 history.scrollRestoration = 'manual';
+window.assetManager = assetManager;
+assetManager.start();
 restorePlayback();
 
 const callout = document.querySelector('.callout');
