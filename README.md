@@ -112,6 +112,10 @@ first record.
 - `.dev.vars` is git-ignored and holds credentials for local serverless work.
   `.dev.vars.example` documents the expected keys. Rotate any key that has been
   shared.
+- `src/_headers` sets a strict Content Security Policy: executable JavaScript is
+  limited to the site itself and Cloudflare Turnstile. Inline styles remain
+  allowed for template-level CSS custom properties. Keep new scripts external
+  (or add an explicit hash/source) and test the contact page after changing it.
 - The contact form posts to `/api/contact`, a Cloudflare Pages Function that
   verifies Turnstile and sends the message through Resend. The Tidal widget
   calls `/tidal`. Both endpoints exist only under `wrangler pages dev` or a

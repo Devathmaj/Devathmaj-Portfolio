@@ -17,6 +17,11 @@ import { updateFooterBreadcrumbs } from './utils/updateFooterBreadcrumbs';
 
 import DefaultTransition from './transitions/Default';
 
+// Keep the no-JS fallback until the module actually runs, then opt into the
+// JavaScript-enhanced styles. This replaces the inline script so the page can
+// ship a strict script-src CSP without hashes or 'unsafe-inline'.
+document.body.classList.remove('no-js');
+
 const NOW_PLAYING_CACHE_KEY = 'devathmaj-portfolio:now-playing';
 const NOW_PLAYING_CACHE_TTL = 6 * 60 * 60 * 1000;
 const clearCachedNowPlaying = () => {
