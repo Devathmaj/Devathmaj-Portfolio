@@ -27,13 +27,24 @@ const initializeQuote = (root) => {
   });
 };
 
+/**
+ * The hero marks its eager, high-priority image as the initial one. Showing
+ * that image first keeps the largest paint independent of the rotation clock
+ * and of the lazy loading of the remaining variants.
+ */
+const getInitialImageIndex = (root, images) => {
+  const initial = root.querySelector('[data-shuffle-initial]');
+  const index = initial ? images.indexOf(initial) : -1;
+  return index >= 0 ? index : getRotationIndex(images.length, getInterval(root));
+};
+
 const initializeImages = (root) => {
   if (root.querySelector('[data-shuffle-image].is-active')) return;
 
   const images = Array.from(root.querySelectorAll('[data-shuffle-image]'));
   if (!images.length) return;
 
-  const index = getRotationIndex(images.length, getInterval(root));
+  const index = getInitialImageIndex(root, images);
 
   applyInitialActiveState(root, () => {
     images.forEach((image, imageIndex) => {

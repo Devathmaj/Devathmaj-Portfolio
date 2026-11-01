@@ -631,6 +631,9 @@ export class AssetScheduler {
       if (response.status === 206) throw new Error('partial_response');
       if (!response.ok) throw new Error(`http_${response.status}`);
 
+      // The worker may have already stored this revision while coalescing a
+      // concurrent <img> request. Skip a duplicate IndexedDB write.
+      const storedByWorker = response.headers.get('X-Asset-Cached') === '1';
       const buffer = await response.arrayBuffer();
       if (asset.size && buffer.byteLength !== asset.size) {
         throw new Error(`size_mismatch:${buffer.byteLength}`);
@@ -643,17 +646,19 @@ export class AssetScheduler {
         }
       }
 
-      const cache = await this.openAssetCache();
-      await cache.put(
-        key,
-        new Response(buffer, {
-          status: 200,
-          headers: {
-            'Content-Type': response.headers.get('Content-Type') || 'application/octet-stream',
-            'Content-Length': String(buffer.byteLength),
-          },
-        }),
-      );
+      if (!storedByWorker) {
+        const cache = await this.openAssetCache();
+        await cache.put(
+          key,
+          new Response(buffer, {
+            status: 200,
+            headers: {
+              'Content-Type': response.headers.get('Content-Type') || 'application/octet-stream',
+              'Content-Length': String(buffer.byteLength),
+            },
+          }),
+        );
+      }
 
       this.cachedIds.add(asset.id);
       await this.markCompleted(asset, group, buffer.byteLength);

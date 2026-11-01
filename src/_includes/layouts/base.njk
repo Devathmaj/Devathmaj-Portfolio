@@ -60,9 +60,22 @@
     {% endif %}
 
     {% if page.url === '/' %}
+        {# The eager, high-priority hero image is the LCP element. Preloading
+           exactly the WebP candidate that <picture> will choose removes the
+           parser-discovery delay without adding a second download. #}
+        <link rel="preload" as="image" type="image/webp" fetchpriority="high"
+              href="/img/confessit-800w.webp"
+              imagesrcset="/img/confessit-400w.webp 400w, /img/confessit-800w.webp 800w, /img/confessit-1400w.webp 1400w, /img/confessit-1919w.webp 1919w"
+              imagesizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw">
         <link rel="preload" href="/fonts/manuka-black.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="preload" href="/fonts/subset-LouizeDisplay.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="preload" href="/fonts/subset-LouizeDisplay-Italic.woff2" as="font" type="font/woff2" crossorigin />
+        {# Body and label faces are used in the first viewport. Preloading them
+           avoids laying the page out with fallback metrics and then reflowing
+           the whole document when the remote fonts arrive. #}
+        <link rel="preload" href="/fonts/PPNeueMontreal-Regular.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/PPNeueMontreal-Bold.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/subset-Louize.woff2" as="font" type="font/woff2" crossorigin />
     {% else %}
         <link rel="preload" href="/fonts/subset-Louize.woff2" as="font" type="font/woff2" crossorigin />
     {% endif %}

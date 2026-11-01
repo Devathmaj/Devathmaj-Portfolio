@@ -14,6 +14,12 @@ const ASSET_PATH = /^\/(?:img|fonts|music|css|js|assets|meta|certificate|resume)
 
 let assetMapPromise = null;
 
+// One shared transfer per revision. A speculative background download and the
+// page's own <img> can request the same revision at almost the same time; the
+// worker joins them instead of downloading the bytes twice.
+const inflightAssets = new Map();
+const AUDIO_PATH = /\.(?:mp3|wav|ogg|m4a|flac|aac)$/i;
+
 const sameOrigin = (url) => url.origin === self.location.origin;
 const isApi = (url) => url.pathname.startsWith('/api/');
 const isAsset = (url) =>
@@ -97,10 +103,83 @@ async function cachedAsset(request) {
   return rangeResponse(response, request);
 }
 
+const canShareTransfer = (request, revisionKey) =>
+  Boolean(revisionKey) &&
+  request.method === 'GET' &&
+  !request.headers.has('range') &&
+  !request.headers.has('if-range') &&
+  !AUDIO_PATH.test(new URL(request.url).pathname);
+
+/**
+ * Resolve several overlapping requests for one revision from a single network
+ * transfer. The buffer is fanned out as an independent Response per consumer
+ * and written to Cache Storage once.
+ */
+async function sharedAsset(request, revisionKey, event) {
+  let transfer = inflightAssets.get(revisionKey);
+
+  if (!transfer) {
+    // Detach from the caller's request signal: an aborted <img> or a paused
+    // speculative download must not cancel the transfer another consumer is
+    // waiting for.
+    const source = new Request(request.url, {
+      method: 'GET',
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+
+    const entry = (async () => {
+      const response = await fetch(source);
+      if (!response.ok || response.status !== 200) return { response };
+
+      const buffer = await response.arrayBuffer();
+      const headers = {
+        'Content-Type':
+          response.headers.get('Content-Type') || 'application/octet-stream',
+        'Content-Length': String(buffer.byteLength),
+      };
+
+      let cached = false;
+      try {
+        const cache = await caches.open(ASSET_CACHE);
+        await cache.put(
+          revisionKey,
+          new Response(buffer, { status: 200, headers }),
+        );
+        cached = true;
+      } catch {
+        // Returning the bytes matters more than the cache write.
+      }
+
+      return {
+        buffer,
+        headers: cached ? { ...headers, 'X-Asset-Cached': '1' } : headers,
+      };
+    })().finally(() => {
+      if (inflightAssets.get(revisionKey) === entry) {
+        inflightAssets.delete(revisionKey);
+      }
+    });
+
+    inflightAssets.set(revisionKey, entry);
+    transfer = entry;
+  }
+
+  const result = await transfer;
+  // Each consumer needs its own body handle; a Response can only be read once.
+  if (result.response) return result.response.clone();
+  return new Response(result.buffer, { status: 200, headers: result.headers });
+}
+
 async function networkAsset(request, event) {
   const url = new URL(request.url);
   const map = (await getAssetMap()).map || {};
   const revisionKey = map[url.pathname];
+
+  if (canShareTransfer(request, revisionKey)) {
+    return sharedAsset(request, revisionKey, event);
+  }
+
   const isSchedulerDownload = request.headers.get('X-Asset-Download') === '1';
   const response = await fetch(request);
 

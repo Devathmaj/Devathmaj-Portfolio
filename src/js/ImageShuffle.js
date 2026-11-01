@@ -19,20 +19,26 @@ export default class ImageShuffle {
 
     if (!this.images.length) return;
 
-    this.currentIndex = getRotationIndex(
-      this.images.length,
-      this.interval,
-    );
+    const initialImage = this.root.querySelector('[data-shuffle-initial]');
+    const initialIndex = initialImage
+      ? this.images.indexOf(initialImage)
+      : -1;
 
-    const hasActiveImage = this.images.some((image) =>
+    this.currentIndex =
+      initialIndex >= 0
+        ? initialIndex
+        : getRotationIndex(this.images.length, this.interval);
+
+    const activeIndex = this.images.findIndex((image) =>
       image.classList.contains('is-active'),
     );
 
-    if (hasActiveImage) {
-      // The synchronous initializer already picked the scheduled item. Only
-      // update it if the time slot advanced while the module was loading.
-      this.setActive(this.currentIndex);
-      this.syncFrame(this.images[this.currentIndex]);
+    if (activeIndex >= 0) {
+      // The synchronous initializer already committed an item (the eager hero
+      // image when one is marked). Keep it: swapping to the current time slot
+      // here would replace the paint that is already in flight.
+      this.currentIndex = activeIndex;
+      this.syncFrame(this.images[activeIndex]);
     } else {
       applyInitialActiveState(this.root, () => {
         this.setActive(this.currentIndex);
@@ -60,28 +66,58 @@ export default class ImageShuffle {
 
     if (prefersReducedMotion) return;
 
-    const scheduleNext = () => {
+    // Hold the first rotation until the image that is actually on screen has
+    // loaded and painted. On a throttled connection the scheduled slot can
+    // advance while the eager image is still in flight; swapping then would
+    // replace a visible image with an unloaded variant.
+    const initial = this.images[this.currentIndex];
+    const loaded =
+      initial && initial.complete
+        ? Promise.resolve()
+        : new Promise((resolve) => {
+            initial?.addEventListener('load', resolve, { once: true });
+            initial?.addEventListener('error', resolve, { once: true });
+          });
+    const decoded =
+      loaded.then(() =>
+        initial?.decode ? initial.decode().catch(() => {}) : undefined,
+      );
+
+    decoded.then(() => {
+      if (this.destroyed) return;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!this.destroyed) this.scheduleNext();
+        });
+      });
+    });
+  }
+
+  scheduleNext() {
+    if (this.destroyed) return;
+
+    this.timer = window.setTimeout(() => {
+      this.timer = null;
       if (this.destroyed) return;
 
-      this.timer = window.setTimeout(() => {
-        this.timer = null;
-        if (this.destroyed) return;
+      const nextIndex = getRotationIndex(this.images.length, this.interval);
+      const next = this.images[nextIndex];
 
-        const nextIndex = getRotationIndex(
-          this.images.length,
-          this.interval,
-        );
+      // Only swap to a variant that is already available. The remaining
+      // variants stay lazy/low priority; until one is ready the current image
+      // remains visible instead of flashing an empty frame.
+      if (
+        nextIndex !== this.currentIndex &&
+        next &&
+        next.complete &&
+        next.naturalWidth
+      ) {
+        this.setActive(nextIndex);
+        this.syncFrameAfterDecode(next);
+      }
 
-        if (nextIndex !== this.currentIndex) {
-          this.setActive(nextIndex);
-          this.syncFrameAfterDecode(this.images[nextIndex]);
-        }
-
-        scheduleNext();
-      }, getDelayUntilNextRotation(this.interval));
-    };
-
-    scheduleNext();
+      this.scheduleNext();
+    }, getDelayUntilNextRotation(this.interval));
   }
 
   syncFrameAfterDecode(image) {
