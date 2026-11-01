@@ -74,7 +74,7 @@ export default class VinylPlayer {
       id, title, artist, colour, sources,
     }));
     const restoredIndex = this.tracks.findIndex((track) => track.id === this.shared.currentId);
-    this.resumed = restoredIndex >= 0 && Boolean(this.audio.src) && this.shared.session;
+    this.resumed = restoredIndex >= 0 && Boolean(this.shared.session);
     this.current = this.resumed ? restoredIndex : 0;
     this.requested = this.current;
     this.sourceIndex = 0;
@@ -171,7 +171,7 @@ export default class VinylPlayer {
     if (this.resumed) {
       this.restoreSession();
     } else {
-      this.loadTrack();
+      this.prepareTrack();
       this.applyVolume();
       this.syncControls();
     }
@@ -201,7 +201,7 @@ export default class VinylPlayer {
     this.envelope.gain = 1;
     this.volume.style.setProperty('--progress', `${Number(this.volume.value) * 100}%`);
     this.syncMute();
-    this.updateProgress();
+    this.updateProgress(this.audio.src ? 0 : this.shared.pendingTime || 0);
 
     if (!this.audio.paused) {
       this.playing = true;
@@ -311,7 +311,11 @@ export default class VinylPlayer {
     return this.tween(this.envelope, { gain, duration, ease: 'none', onUpdate: () => this.applyVolume() });
   }
 
-  loadTrack() {
+  /**
+   * Put the selected record on the UI without fetching its audio. Called when
+   * the player mounts so a homepage visit does not preload any music.
+   */
+  prepareTrack() {
     this.sourceIndex = 0;
     const track = this.tracks[this.current];
     this.sources = track.sources.filter((source) => this.audio.canPlayType(source.type));
@@ -319,9 +323,18 @@ export default class VinylPlayer {
     this.find('[data-track-artist]').textContent = track.artist;
     this.seek.value = '0';
     this.seek.disabled = true;
-    this.find('[data-current-time]').textContent = '0:00';
+    this.find('[data-current-time]').textContent =
+      this.shared.pendingTime > 0 ? timeLabel(this.shared.pendingTime) : '0:00';
     this.find('[data-duration]').textContent = '--:--';
-    if (!this.sources.length) { this.fail('This browser cannot play this record. Please try another.'); return; }
+    this.audio.preload = 'none';
+    if (!this.sources.length) {
+      this.fail('This browser cannot play this record. Please try another.');
+    }
+  }
+
+  loadTrack() {
+    this.prepareTrack();
+    if (!this.sources?.length) return;
     this.audio.preload = 'metadata';
     this.audio.src = assetManager.getPlaybackUrl(this.sources[0].src);
     this.audio.load();
@@ -358,6 +371,8 @@ export default class VinylPlayer {
 
   async startPlayback() {
     if (this.destroyed || !this.sources?.length) return;
+    if (!this.audio.src) this.loadTrack();
+    if (!this.audio.src || !this.sources?.length) return;
     assetManager.prioritizeTrack(this.tracks[this.current].id);
     const attempt = ++this.playAttempt;
     this.wantsPlayback = true;
@@ -394,8 +409,8 @@ export default class VinylPlayer {
     if (this.busy) return;
     if (this.wantsPlayback && !this.audio.paused) this.pause();
     else {
-      if (this.audio.error) this.loadTrack();
-      this.startPlayback();
+      if (!this.audio.src || this.audio.error) this.loadTrack();
+      if (this.sources?.length) this.startPlayback();
     }
   }
 
@@ -562,15 +577,17 @@ export default class VinylPlayer {
     this.syncShared();
   }
 
-  updateProgress() {
+  /** @param {number} [previewTime] Position to show before metadata loads. */
+  updateProgress(previewTime = 0) {
     const { currentTime, duration } = this.audio;
     const valid = Number.isFinite(duration) && duration > 0;
+    const shown = valid ? currentTime : previewTime || currentTime || 0;
     this.seek.disabled = this.busy || !valid;
     this.seek.max = valid ? String(duration) : '100';
-    this.seek.value = String(currentTime || 0);
-    this.seek.style.setProperty('--progress', `${valid ? currentTime / duration * 100 : 0}%`);
-    this.seek.setAttribute('aria-valuetext', `${timeLabel(currentTime)} of ${timeLabel(duration)}`);
-    this.find('[data-current-time]').textContent = timeLabel(currentTime);
+    this.seek.value = String(shown);
+    this.seek.style.setProperty('--progress', `${valid ? (shown / duration) * 100 : 0}%`);
+    this.seek.setAttribute('aria-valuetext', `${timeLabel(shown)} of ${timeLabel(duration)}`);
+    this.find('[data-current-time]').textContent = timeLabel(shown);
     this.find('[data-duration]').textContent = timeLabel(duration);
   }
 

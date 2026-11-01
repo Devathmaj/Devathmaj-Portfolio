@@ -14,6 +14,7 @@ import QuoteShuffle from './QuoteShuffle';
 import ImageShuffle from './ImageShuffle';
 import { restorePlayback, syncVinylDock } from './vinylAudio';
 import { assetManager } from './assets/AssetManager';
+import { postBackgroundTask } from './assets/scheduling';
 
 import { updateFooterBreadcrumbs } from './utils/updateFooterBreadcrumbs';
 
@@ -79,6 +80,40 @@ let imageShuffles = [];
 let quoteShuffle = null;
 let vinylPlayer = null;
 let certificateStack = null;
+let vinylMountCleanup = null;
+let footerShader = null;
+let footerMountCleanup = null;
+let footerMountToken = null;
+
+/** Mount a module only once its target is close to the viewport. */
+const whenNearViewport = (target, callback, rootMargin = '600px 0px') => {
+  if (!('IntersectionObserver' in window)) {
+    callback();
+    return () => {};
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      callback();
+    },
+    { rootMargin },
+  );
+  observer.observe(target);
+  return () => observer.disconnect();
+};
+
+const clearLazyMounts = () => {
+  vinylMountCleanup?.();
+  vinylMountCleanup = null;
+  footerMountCleanup?.();
+  footerMountCleanup = null;
+  if (footerMountToken) footerMountToken.active = false;
+  footerMountToken = null;
+  footerShader?.destroy();
+  footerShader = null;
+};
 
 const destroyVinylPlayer = () => {
   vinylPlayer?.destroy();
@@ -187,12 +222,24 @@ Happy exploring!
     destroyProjectShowcase();
     destroyProjectSignals();
 
+    clearLazyMounts();
     destroyVinylPlayer();
     const vinylRoot = document.querySelector('[data-vinyl-player]');
     if (vinylRoot) {
-      import('./VinylPlayer').then(({ default: VinylPlayer }) => {
-        if (vinylRoot.isConnected) vinylPlayer = new VinylPlayer(vinylRoot);
-      }).catch((error) => console.error('Failed to load the vinyl player:', error));
+      // The turntable is far below the fold; its parsing, GSAP setup and
+      // animation frame work are not needed until the visitor approaches it.
+      vinylMountCleanup = whenNearViewport(vinylRoot, () => {
+        import('./VinylPlayer')
+          .then(({ default: VinylPlayer }) => {
+            if (
+              document.querySelector('[data-vinyl-player]') === vinylRoot &&
+              vinylRoot.isConnected
+            ) {
+              vinylPlayer = new VinylPlayer(vinylRoot);
+            }
+          })
+          .catch((error) => console.error('Failed to load the vinyl player:', error));
+      });
     }
 
     const projectSignalControls = document.querySelectorAll('[data-project-signal-control]');
@@ -339,15 +386,43 @@ Happy exploring!
           console.error('Failed to load the Marquee module:', error);
         });
     }
-    if (document.querySelector('.footer-border')) {
-      import('./FooterShader').then(({ default: FooterShader }) => {
-        new FooterShader();
-      });
+    const footerRoot = document.querySelector('.footer-border');
+    if (footerRoot) {
+      const token = { active: true };
+      footerMountToken = token;
+      footerMountCleanup = whenNearViewport(
+        footerRoot,
+        () => {
+          import('./FooterShader')
+            .then(({ default: FooterShader }) => {
+              if (!token.active) return;
+              // Shader setup allocates a large canvas and uploads the footer
+              // texture. Let the scroll frame that revealed the footer finish
+              // before that work starts.
+              postBackgroundTask(
+                () => {
+                  if (!token.active) return;
+                  if (
+                    document.querySelector('.footer-border') !== footerRoot ||
+                    !footerRoot.isConnected
+                  ) {
+                    return;
+                  }
+                  footerShader = new FooterShader();
+                },
+                { timeout: 1200 },
+              );
+            })
+            .catch((error) => console.error('Failed to load the footer shader:', error));
+        },
+        '300px 0px',
+      );
     }
     updateFooterBreadcrumbs();
     syncVinylDock();
   }
   onLeave() {
+    clearLazyMounts();
     destroyVinylPlayer();
     destroyImageShuffles();
     destroyProjectShowcase();

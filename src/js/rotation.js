@@ -36,9 +36,14 @@ export const getDelayUntilNextRotation = (
 };
 
 /**
- * Apply the initial active item with transitions disabled. Forcing a style
- * flush commits the correct item before transitions are re-enabled, so
- * restoring the scheduled item never looks like a rotation animation.
+ * Apply the initial active item with transitions disabled. The browser paints
+ * the committed state before transitions are re-enabled, so restoring the
+ * scheduled item never looks like a rotation animation.
+ *
+ * The transition-suppression class is removed after two frames instead of
+ * forcing a synchronous layout. A forced layout during parsing used to stall
+ * the main thread for hundreds of milliseconds on slower devices; letting the
+ * browser schedule the layout is both cheaper and less disruptive.
  */
 export const applyInitialActiveState = (root, apply) => {
   root.classList.add('is-initializing');
@@ -46,9 +51,12 @@ export const applyInitialActiveState = (root, apply) => {
   try {
     apply();
   } finally {
-    // Commit the active state while transitions are suppressed.
-    void root.offsetWidth;
-    root.classList.remove('is-initializing');
+    const release = () => root.classList.remove('is-initializing');
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(release));
+    } else {
+      setTimeout(release, 32);
+    }
   }
 };
 

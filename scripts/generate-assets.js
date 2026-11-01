@@ -87,19 +87,59 @@ const addHomepageUrl = (set, raw) => {
   set.add(url.pathname);
 };
 
+/** Collect every src/href and srcset candidate from an HTML fragment. */
+const addHtmlUrls = (set, fragment) => {
+  for (const match of fragment.matchAll(/(?:src|href)="([^"]+)"/g)) {
+    addHomepageUrl(set, match[1]);
+  }
+  for (const match of fragment.matchAll(/srcset="([^"]+)"/g)) {
+    for (const candidate of match[1].split(',')) {
+      addHomepageUrl(set, candidate.trim().split(/\s+/)[0]);
+    }
+  }
+};
+
+/**
+ * The first eager/high-priority image is the only imagery guaranteed to be on
+ * screen before the visitor scrolls. Its whole <picture> is treated as part of
+ * the initial shell so the correct candidate is ready in every viewport.
+ */
+const findHeroFragment = (html) => {
+  const img = /<img\b[^>]*(?:loading="eager"|fetchpriority="high")[^>]*>/i.exec(html);
+  if (!img) return '';
+  const start = html.lastIndexOf('<picture', img.index);
+  const close = html.indexOf('</picture>', img.index + img[0].length);
+  const from = start === -1 ? img.index : start;
+  const to = close === -1 ? img.index + img[0].length : close + '</picture>'.length;
+  return html.slice(from, to);
+};
+
+/**
+ * URLs that the generated site really references from HTML or CSS. Source
+ * images copied through to the output that nothing points at (for example the
+ * original behind a responsive <picture>) do not need to be downloaded or
+ * stored for offline use.
+ */
+async function readReferencedUrls(files) {
+  const referenced = new Set();
+  for (const file of files) {
+    if (!/\.(html|css)$/.test(file)) continue;
+    const content = await fsp.readFile(file, 'utf8');
+    addHtmlUrls(referenced, content);
+    for (const match of content.matchAll(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g)) {
+      addHomepageUrl(referenced, match[2]);
+    }
+  }
+  return referenced;
+}
+
 async function readHomepageSet() {
   const homepage = new Set();
   const critical = new Set();
   const html = await fsp.readFile(path.join(SITE_DIR, 'index.html'), 'utf8');
 
-  for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
-    addHomepageUrl(homepage, match[1]);
-  }
-  for (const match of html.matchAll(/srcset="([^"]+)"/g)) {
-    for (const candidate of match[1].split(',')) {
-      addHomepageUrl(homepage, candidate.trim().split(/\s+/)[0]);
-    }
-  }
+  addHtmlUrls(homepage, html);
+
   for (const match of html.matchAll(/<link\b[^>]*rel="preload"[^>]*>/g)) {
     const href = /\bhref="([^"]+)"/.exec(match[0]);
     if (href) {
@@ -107,21 +147,12 @@ async function readHomepageSet() {
       addHomepageUrl(critical, href[1]);
     }
   }
-  for (const match of html.matchAll(/<img\b[^>]*(?:loading="eager"|fetchpriority="high")[^>]*>/g)) {
-    const src = /\bsrc="([^"]+)"/.exec(match[0]);
-    if (src) {
-      addHomepageUrl(homepage, src[1]);
-      addHomepageUrl(critical, src[1]);
-    }
-    const srcset = /\bsrcset="([^"]+)"/.exec(match[0]);
-    if (srcset) {
-      for (const candidate of srcset[1].split(',')) {
-        const url = candidate.trim().split(/\s+/)[0];
-        addHomepageUrl(homepage, url);
-        addHomepageUrl(critical, url);
-      }
-    }
-  }
+
+  // The hero image is visible on first paint. Everything else on the homepage
+  // can wait for the background pass.
+  const hero = findHeroFragment(html);
+  addHtmlUrls(homepage, hero);
+  addHtmlUrls(critical, hero);
 
   // Global stylesheets are homepage dependencies. Their url() references are
   // needed for the visual shell even when a particular rule applies later.
@@ -195,19 +226,29 @@ async function main() {
 
   const { homepage, critical } = await readHomepageSet();
   const files = (await walk(SITE_DIR)).sort();
+  const referenced = await readReferencedUrls(files);
 
   const assets = [];
   for (const file of files) {
     const url = toUrlPath(path.relative(SITE_DIR, file));
     if (isSkipped(url)) continue;
+    // Only the responsive variants are used by the site; the copied decor
+    // original may still be reachable at its URL but nothing requests it.
+    if (url.startsWith('/img/decor/') && !referenced.has(url)) continue;
 
     const type = assetType(url);
     const track = type === 'audio' ? trackByUrl.get(url) : null;
-    const priorityGroup = type === 'audio' || url.startsWith('/music/')
-      ? 'music'
-      : homepage.has(url)
-        ? 'homepage'
-        : 'other';
+    const onHomepage = homepage.has(url);
+    // The queue group is the work that must finish before the page is
+    // considered ready. Homepage imagery below the hero belongs to the
+    // background pass, but keeps its homepage-first ordering there.
+    const priorityGroup =
+      type === 'audio' || url.startsWith('/music/')
+        ? 'music'
+        : critical.has(url)
+          ? 'homepage'
+          : 'other';
+    const deferredHomepage = onHomepage && priorityGroup === 'other';
     const stat = await fsp.stat(file);
 
     assets.push({
@@ -215,6 +256,7 @@ async function main() {
       url,
       type,
       priorityGroup,
+      ...(deferredHomepage ? { deferredHomepage: true } : {}),
       critical: priorityGroup === 'homepage' && critical.has(url),
       revision: await sha256(file),
       size: stat.size,
@@ -222,7 +264,14 @@ async function main() {
   }
 
   const summary = {
-    homepage: { count: 0, bytes: 0, criticalCount: 0, criticalBytes: 0 },
+    homepage: {
+      count: 0,
+      bytes: 0,
+      criticalCount: 0,
+      criticalBytes: 0,
+      deferredCount: 0,
+      deferredBytes: 0,
+    },
     other: { count: 0, bytes: 0 },
     music: { count: 0, bytes: 0 },
     total: { count: 0, bytes: 0 },
@@ -236,6 +285,10 @@ async function main() {
     if (asset.critical) {
       summary.homepage.criticalCount += 1;
       summary.homepage.criticalBytes += asset.size;
+    }
+    if (asset.deferredHomepage) {
+      summary.homepage.deferredCount += 1;
+      summary.homepage.deferredBytes += asset.size;
     }
   }
 
@@ -273,8 +326,8 @@ async function main() {
   await fsp.writeFile(SW_DEST, serviceWorker);
 
   console.log(
-    `[assets] ${build.id} · homepage ${summary.homepage.count} (${summary.homepage.criticalCount} critical), ` +
-      `other ${summary.other.count}, music ${summary.music.count} · ` +
+    `[assets] ${build.id} · homepage ${summary.homepage.count} (${summary.homepage.criticalCount} critical, ` +
+      `${summary.homepage.deferredCount} deferred), other ${summary.other.count}, music ${summary.music.count} · ` +
       `${(summary.total.bytes / 1024 / 1024).toFixed(1)} MB total`,
   );
 }

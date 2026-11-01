@@ -5,6 +5,8 @@ import {
   syncFitFrame,
 } from './rotation.js';
 
+const READY_ATTRIBUTE = 'data-rotation-ready';
+
 const getInterval = (root) =>
   Number(root.dataset.shuffleInterval) || DEFAULT_ROTATION_INTERVAL;
 
@@ -41,13 +43,29 @@ const initializeImages = (root) => {
   });
 };
 
+/**
+ * The homepage includes this file three times so each shuffle can start as
+ * soon as its markup is parsed. Only unmarked roots are processed, which keeps
+ * the later executions from repeating layout work for the same elements.
+ */
 const initializeRotations = () => {
   document
-    .querySelectorAll('[data-quote-stack]')
-    .forEach(initializeQuote);
+    .querySelectorAll(`[data-quote-stack]:not([${READY_ATTRIBUTE}])`)
+    .forEach((root) => {
+      root.dataset.rotationReady = '';
+      initializeQuote(root);
+    });
   document
-    .querySelectorAll('[data-image-shuffle]')
-    .forEach(initializeImages);
+    .querySelectorAll(`[data-image-shuffle]:not([${READY_ATTRIBUTE}])`)
+    .forEach((root) => {
+      root.dataset.rotationReady = '';
+      initializeImages(root);
+    });
 };
 
 initializeRotations();
+// Catch roots inserted after this script runs (for example WebC rendering or
+// a router navigation) without rescanning them again.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeRotations, { once: true });
+}

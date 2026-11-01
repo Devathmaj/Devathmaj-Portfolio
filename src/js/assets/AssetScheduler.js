@@ -9,16 +9,20 @@ import {
   putQueue,
   stageBuild,
 } from './db.js';
+import { postBackgroundTask } from './scheduling.js';
 
 const ASSET_CACHE = 'portfolio-assets-v1';
 const PRECACHE_CACHE_PREFIX = 'workbox-precache';
 const PRECACHE_LOOKUP_RETRY_MS = 5000;
 const MAX_ATTEMPTS = 3;
 const RETRY_BASE_MS = 1500;
+const INTERACTION_IDLE_MS = 2500;
+const QUEUE_WRITE_DELAY_MS = 120;
+const PROGRESS_DELAY_MS = 100;
 
 const GROUP_LIMITS = {
-  homepage: 2,
-  other: 2,
+  homepage: 1,
+  other: 1,
   music: 1,
   user: 3,
 };
@@ -69,16 +73,29 @@ export class AssetScheduler {
     this.abortedFor = new Map();
     this.phase = 'idle';
     this.paused = false;
+    this.interactionPaused = false;
+    this.interactionTimer = null;
+    this.hidden = typeof document !== 'undefined' && document.hidden;
     this.online = navigator.onLine !== false;
     this.saveData = navigator.connection?.saveData === true;
     this.pendingRetries = 0;
     this.resumeTimer = null;
+    this.startRequested = false;
     this.musicSkipped = false;
     this.quotaExceeded = false;
     this.listenersAttached = false;
     this.precacheCacheName = null;
     this.precacheLookupAt = 0;
+    this.assetCachePromise = null;
     this.adoption = null;
+    this.transferGroups = new Map();
+    this.pendingRecords = new Map();
+    this.flushScheduled = false;
+    this.flushPromise = null;
+    this.progressScheduled = false;
+    this.assetsByGroup = Object.fromEntries(
+      ['homepage', 'other', 'music'].map((group) => [group, []]),
+    );
   }
 
   get cacheName() {
@@ -89,6 +106,21 @@ export class AssetScheduler {
     const url = new URL(asset.url, window.location.origin);
     url.searchParams.set('__rev', asset.revision);
     return url.href;
+  }
+
+  /**
+   * A single shared handle for the asset cache. Opening a cache for every
+   * lookup and every stored response used to generate hundreds of separate
+   * tasks while the page was being used.
+   */
+  openAssetCache() {
+    if (!this.assetCachePromise) {
+      this.assetCachePromise = caches.open(ASSET_CACHE).catch((error) => {
+        this.assetCachePromise = null;
+        throw error;
+      });
+    }
+    return this.assetCachePromise;
   }
 
   /** Workbox stores precache entries under the same URL with its own param. */
@@ -191,7 +223,7 @@ export class AssetScheduler {
   async deleteRegularCopy(asset) {
     this.cachedIds.delete(asset.id);
     try {
-      const cache = await caches.open(ASSET_CACHE);
+      const cache = await this.openAssetCache();
       await cache.delete(this.cacheKey(asset));
     } catch {
       // A missing cache or entry is not an adoption failure.
@@ -203,6 +235,12 @@ export class AssetScheduler {
     this.assets = manifest.assets || [];
     this.assetsById = new Map(this.assets.map((asset) => [asset.id, asset]));
     this.assetsByUrl = new Map(this.assets.map((asset) => [asset.url, asset]));
+    this.assetsByGroup = Object.fromEntries(
+      ['homepage', 'other', 'music'].map((group) => [group, []]),
+    );
+    for (const asset of this.assets) {
+      this.assetsByGroup[asset.priorityGroup]?.push(asset);
+    }
   }
 
   attachListeners() {
@@ -226,6 +264,84 @@ export class AssetScheduler {
       this.emit();
       this.pumpAll();
     });
+
+    // Any deliberate interaction preempts speculative transfers. The queue
+    // resumes on its own once the visitor has been idle for a moment.
+    const noteInteraction = () => this.noteInteraction();
+    for (const type of ['pointerdown', 'keydown', 'click', 'input', 'touchstart', 'wheel']) {
+      window.addEventListener(type, noteInteraction, {
+        capture: true,
+        passive: true,
+      });
+    }
+    window.addEventListener('scroll', noteInteraction, { passive: true });
+
+    document.addEventListener('visibilitychange', () => this.handleVisibility());
+    window.addEventListener('pagehide', () => {
+      this.hidden = true;
+      this.flushRecords();
+    });
+    window.addEventListener('pageshow', () => {
+      if (!document.hidden) this.handleVisibility();
+    });
+  }
+
+  noteInteraction() {
+    if (this.phase === 'complete' || this.hidden) return;
+
+    if (!this.interactionPaused) {
+      this.interactionPaused = true;
+      // Aborting one or two speculative transfers frees the connection for the
+      // interaction immediately; they are requeued (not failed) by download().
+      this.abortBackgroundDownloads();
+      this.emit();
+    }
+
+    if (this.interactionTimer) window.clearTimeout(this.interactionTimer);
+    this.interactionTimer = window.setTimeout(() => {
+      this.interactionTimer = null;
+      this.interactionPaused = false;
+      this.emit();
+      this.resumeWork();
+    }, INTERACTION_IDLE_MS);
+  }
+
+  handleVisibility() {
+    const hidden = document.hidden;
+    const changed = hidden !== this.hidden;
+    this.hidden = hidden;
+
+    if (hidden) {
+      this.flushRecords();
+      if (changed) this.abortBackgroundDownloads();
+      this.emit();
+      return;
+    }
+
+    // Becoming visible again is not an interaction: let background work
+    // continue from where it stopped.
+    this.interactionPaused = false;
+    if (this.interactionTimer) {
+      window.clearTimeout(this.interactionTimer);
+      this.interactionTimer = null;
+    }
+    this.emit();
+    this.resumeWork();
+  }
+
+  /** Restart whatever the pause interrupted, including the first phase. */
+  resumeWork() {
+    if (this.speculativePaused() || this.phase === 'complete') return;
+    if (this.phase === 'idle' && this.startRequested) {
+      this.startHomepagePhase();
+      return;
+    }
+    this.pumpAll();
+    this.maybeAdvance();
+  }
+
+  speculativePaused() {
+    return this.paused || this.interactionPaused || this.hidden;
   }
 
   makeRecord(asset, status = 'pending') {
@@ -388,7 +504,17 @@ export class AssetScheduler {
     }
     if (this.failed.has(asset.id)) return;
     this.queuedIds.add(asset.id);
-    this.queues[group].push(asset);
+
+    const queue = this.queues[group];
+    // Homepage images that are below the fold still belong to the background
+    // pass, but they should be reached before unrelated pages' assets.
+    if (group === 'other' && asset.deferredHomepage) {
+      const index = queue.findIndex((entry) => !entry.deferredHomepage);
+      if (index === -1) queue.push(asset);
+      else queue.splice(index, 0, asset);
+      return;
+    }
+    queue.push(asset);
   }
 
   enqueueGroup(group) {
@@ -408,7 +534,7 @@ export class AssetScheduler {
     if (this.cachedIds.has(asset.id)) return true;
     if (!('caches' in window)) return false;
     try {
-      const cache = await caches.open(ASSET_CACHE);
+      const cache = await this.openAssetCache();
       const hit = await cache.match(this.cacheKey(asset));
       if (hit) this.cachedIds.add(asset.id);
       return Boolean(hit);
@@ -444,7 +570,7 @@ export class AssetScheduler {
     try {
       while (true) {
         if (!this.online) break;
-        if (this.paused && group !== 'user') break;
+        if (this.speculativePaused() && group !== 'user') break;
         if (this.active[group] >= this.limit(group)) break;
 
         const asset = this.queues[group].shift();
@@ -498,6 +624,7 @@ export class AssetScheduler {
         cache: 'no-store',
         credentials: 'same-origin',
         headers: { 'X-Asset-Download': '1' },
+        priority: group === 'user' ? 'high' : 'low',
         signal: controller.signal,
       });
 
@@ -516,7 +643,7 @@ export class AssetScheduler {
         }
       }
 
-      const cache = await caches.open(ASSET_CACHE);
+      const cache = await this.openAssetCache();
       await cache.put(
         key,
         new Response(buffer, {
@@ -549,7 +676,7 @@ export class AssetScheduler {
         if (!this.abortedFor.has(asset.id)) {
           this.abortedFor.set(asset.id, group === 'user' ? 'user' : 'background');
         }
-        await putQueue([record]);
+        this.queueRecord(record);
         this.emit();
         return;
       }
@@ -557,6 +684,7 @@ export class AssetScheduler {
     }).finally(() => {
       this.inflight.delete(asset.id);
       this.controllers.delete(asset.id);
+      this.transferGroups.delete(asset.id);
 
       const target = this.abortedFor.get(asset.id);
       if (!target) return;
@@ -574,7 +702,59 @@ export class AssetScheduler {
 
     this.inflight.set(asset.id, task);
     this.controllers.set(asset.id, controller);
+    this.transferGroups.set(asset.id, group);
     return task;
+  }
+
+  /** Persist many small record changes together instead of one transaction each. */
+  queueRecord(record) {
+    if (!record?.id) return;
+    this.pendingRecords.set(record.id, record);
+    this.scheduleFlush();
+  }
+
+  scheduleFlush() {
+    if (this.flushScheduled) return;
+    this.flushScheduled = true;
+    postBackgroundTask(() => {
+      this.flushScheduled = false;
+      this.flushRecords();
+    }, { delay: QUEUE_WRITE_DELAY_MS });
+  }
+
+  async flushRecords() {
+    if (this.flushPromise) return this.flushPromise;
+    if (!this.pendingRecords.size) return undefined;
+
+    const records = [...this.pendingRecords.values()];
+    this.pendingRecords.clear();
+    this.flushPromise = putQueue(records)
+      .catch((error) => {
+        // Keep the latest copy in memory so a later flush can retry it.
+        for (const record of records) {
+          if (!this.pendingRecords.has(record.id)) {
+            this.pendingRecords.set(record.id, record);
+          }
+        }
+        console.warn('[assets] Could not persist the download queue', error);
+      })
+      .finally(() => {
+        this.flushPromise = null;
+        if (this.pendingRecords.size) this.scheduleFlush();
+      });
+    return this.flushPromise;
+  }
+
+  /** Drain every pending record, including ones queued while a write ran. */
+  async flushAllRecords() {
+    for (let guard = 0; guard < 5; guard += 1) {
+      if (this.pendingRecords.size || this.flushPromise) {
+        await this.flushRecords();
+        await this.flushPromise;
+        continue;
+      }
+      return;
+    }
   }
 
   async markCompleted(asset, group, bytes) {
@@ -592,7 +772,7 @@ export class AssetScheduler {
     } else {
       this.cachedIds.add(asset.id);
     }
-    await putQueue([record]);
+    this.queueRecord(record);
     if (group === 'user') this.scheduleResume();
     this.emit();
   }
@@ -615,7 +795,7 @@ export class AssetScheduler {
 
   async markAdopted(asset, group) {
     const record = this.markAdoptedRecord(asset);
-    await putQueue([record]);
+    this.queueRecord(record);
     if (group === 'user') this.scheduleResume();
     this.emit();
   }
@@ -759,7 +939,7 @@ export class AssetScheduler {
     if (record.attempts < MAX_ATTEMPTS && this.online) {
       record.status = 'retrying';
       this.records.set(asset.id, record);
-      await putQueue([record]);
+      this.queueRecord(record);
       this.pendingRetries += 1;
       this.emit();
       window.setTimeout(() => {
@@ -775,7 +955,7 @@ export class AssetScheduler {
     record.status = 'failed';
     this.records.set(asset.id, record);
     this.failed.add(asset.id);
-    await putQueue([record]);
+    this.queueRecord(record);
     if (group === 'user') this.scheduleResume();
     this.emit();
   }
@@ -797,6 +977,9 @@ export class AssetScheduler {
 
   startHomepagePhase() {
     if (this.phase === 'complete') return;
+    this.startRequested = true;
+    if (this.speculativePaused()) return;
+    this.startRequested = false;
     this.phase = 'homepage';
     this.enqueueGroup('homepage');
     this.pump('homepage');
@@ -805,7 +988,7 @@ export class AssetScheduler {
 
   startBackgroundPhase() {
     if (['background', 'music', 'complete'].includes(this.phase)) return;
-    if (this.paused) return;
+    if (this.speculativePaused()) return;
     this.phase = 'background';
     this.enqueueGroup('other');
     this.pump('other');
@@ -814,7 +997,7 @@ export class AssetScheduler {
 
   startMusicPhase() {
     if (['music', 'complete'].includes(this.phase)) return;
-    if (this.paused) return;
+    if (this.speculativePaused()) return;
     this.phase = 'music';
     if (this.saveData) {
       this.musicSkipped = true;
@@ -849,7 +1032,11 @@ export class AssetScheduler {
   }
 
   maybeAdvance() {
-    if (this.paused || this.phase === 'complete' || this.phase === 'idle') return;
+    if (this.phase === 'complete' || this.phase === 'idle') return;
+    // Phase transitions and the final commit are background work too. Waiting
+    // here keeps IndexedDB writes and manifest reconciliation out of an
+    // interaction, and they run as soon as the pause clears.
+    if (this.speculativePaused()) return;
 
     if (this.phase === 'homepage' && this.groupDone('homepage')) {
       if (this.failedInGroup('homepage')) {
@@ -882,6 +1069,9 @@ export class AssetScheduler {
     if (this.phase === 'complete') return;
     this.phase = 'complete';
     try {
+      // Make sure every completed record reached IndexedDB before the build is
+      // promoted; commitBuild removes the staging metadata in one transaction.
+      await this.flushAllRecords();
       await commitBuild(this.manifest, this.obsoleteAssets);
       await this.onCommit?.(this.manifest);
     } catch (error) {
@@ -943,7 +1133,11 @@ export class AssetScheduler {
   abortBackgroundDownloads(exceptId = null) {
     for (const [id, controller] of this.controllers) {
       if (id === exceptId) continue;
-      const group = this.records.get(id)?.priorityGroup;
+      // Use the queue the transfer actually started from. A music file that
+      // was promoted to the user queue still reports its original priority
+      // group in its persisted record.
+      const group =
+        this.transferGroups.get(id) || this.records.get(id)?.priorityGroup;
       if (group && group !== 'user') controller.abort();
     }
   }
@@ -992,8 +1186,10 @@ export class AssetScheduler {
     }
     this.paused = false;
     this.emit();
-    this.pumpAll();
-    this.maybeAdvance();
+    // Music preemption may end while the tab is hidden or the visitor is still
+    // interacting. In that case the resume happens through visibilitychange or
+    // the interaction-idle timer instead of here.
+    this.resumeWork();
   }
 
   scheduleResume() {
@@ -1009,6 +1205,8 @@ export class AssetScheduler {
     return {
       phase: this.phase,
       paused: this.paused,
+      interactionPaused: this.interactionPaused,
+      hidden: this.hidden,
       online: this.online,
       saveData: this.saveData,
       pendingRetries: this.pendingRetries,
@@ -1064,6 +1262,21 @@ export class AssetScheduler {
   }
 
   emit() {
+    if (this.progressScheduled) return;
+    this.progressScheduled = true;
+    // Progress is collected once per frame-ish window instead of on every
+    // record change. Each emission walks the full manifest, which is far too
+    // expensive to do for every completed file.
+    postBackgroundTask(
+      () => {
+        this.progressScheduled = false;
+        this.emitNow();
+      },
+      { delay: PROGRESS_DELAY_MS },
+    );
+  }
+
+  emitNow() {
     const progress = this.getProgress();
     this.onUpdate?.(progress);
     document.dispatchEvent(new CustomEvent('asset:progress', { detail: progress }));

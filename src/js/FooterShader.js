@@ -4,6 +4,40 @@ import createShader from './utils/createShader';
 
 export default class FooterShader {
   constructor() {
+    this.destroyed = false;
+    this.frame = 0;
+    this.canvas = null;
+    this.render = null;
+    this.image = null;
+    this.start();
+  }
+
+  /**
+   * The footer image is already a lazy, responsive <img>. Reuse it as the
+   * texture instead of downloading the full-size original a second time, and
+   * wait until it is decoded so the first frame does not block on decode work.
+   */
+  async start() {
+    const footer = document.querySelector('.footer-border');
+    if (!footer || !footer.parentElement) return;
+    this.image = footer;
+
+    try {
+      if (typeof footer.decode === 'function') await footer.decode();
+      else {
+        await new Promise((resolve) => {
+          if (footer.complete && footer.naturalWidth) resolve();
+          else {
+            footer.addEventListener('load', resolve, { once: true });
+            footer.addEventListener('error', resolve, { once: true });
+          }
+        });
+      }
+    } catch {
+      return;
+    }
+    if (this.destroyed || !footer.isConnected || !footer.naturalWidth) return;
+
     const shaderProps = {
       WIND_SCALE: 3.0,
       WIND_SPEED: 0.2,
@@ -21,13 +55,14 @@ export default class FooterShader {
     ).matches;
 
     const canvas = document.createElement('canvas');
-    const footer = document.querySelector('.footer-border');
+    this.canvas = canvas;
     footer.parentElement.insertBefore(canvas, footer);
 
     const gl = canvas.getContext('webgl');
 
     if (!gl) {
       console.error('WebGL not supported');
+      canvas.remove();
       throw new Error('WebGL not supported');
     }
 
@@ -49,6 +84,7 @@ export default class FooterShader {
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       console.error(gl.getProgramInfoLog(program));
+      canvas.remove();
       throw new Error('Failed to link program');
     }
 
@@ -63,93 +99,101 @@ export default class FooterShader {
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
 
-    const image = new Image();
-    image.src = '/img/decor/footer-border.png';
-    image.crossOrigin = 'anonymous';
-    image.onload = () => {
-      const texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        image
-      );
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      footer
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
-      const startTime = performance.now();
-      function render(currentTime) {
-        const displayWidth = canvas.clientWidth * 3;
-        const displayHeight = canvas.clientHeight * 3;
-        if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
-          canvas.width = displayWidth;
-          canvas.height =
-            displayWidth * (image.naturalHeight / image.naturalWidth);
-          gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        }
+    const startTime = performance.now();
+    const render = (currentTime) => {
+      if (this.destroyed) return;
 
-        const elapsedTime = (currentTime - startTime) / 1000;
-
-        gl.useProgram(program);
-
-        const timeLocation = gl.getUniformLocation(program, 'u_time');
-        gl.uniform1f(timeLocation, elapsedTime);
-
-        gl.uniform1f(
-          gl.getUniformLocation(program, 'WIND_SCALE'),
-          shaderProps.WIND_SCALE
-        );
-        gl.uniform1f(
-          gl.getUniformLocation(program, 'WIND_SPEED'),
-          shaderProps.WIND_SPEED
-        );
-        gl.uniform2f(
-          gl.getUniformLocation(program, 'WIND_AMPLITUDE'),
-          shaderProps.WIND_AMPLITUDE_X,
-          shaderProps.WIND_AMPLITUDE_Y
-        );
-        gl.uniform1f(
-          gl.getUniformLocation(program, 'COLOR_SHIFT'),
-          shaderProps.COLOR_SHIFT
-        );
-        gl.uniform1f(
-          gl.getUniformLocation(program, 'JITTER_INTENSITY'),
-          shaderProps.JITTER_INTENSITY
-        );
-        gl.uniform1f(
-          gl.getUniformLocation(program, 'DRIFT_SCALE'),
-          shaderProps.DRIFT_SCALE
-        );
-        gl.uniform1f(
-          gl.getUniformLocation(program, 'DRIFT_INTENSITY'),
-          shaderProps.DRIFT_INTENSITY
-        );
-        gl.uniform1f(
-          gl.getUniformLocation(program, 'VERTICAL_BIAS'),
-          shaderProps.VERTICAL_BIAS
-        );
-
-        const positionLocation = gl.getAttribLocation(program, 'a_position');
-        gl.enableVertexAttribArray(positionLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-        const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
-        gl.enableVertexAttribArray(texCoordLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-        gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(render);
-        }
+      const displayWidth = canvas.clientWidth * 3;
+      const displayHeight = canvas.clientHeight * 3;
+      if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+        canvas.width = displayWidth;
+        canvas.height =
+          displayWidth * (footer.naturalHeight / footer.naturalWidth);
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       }
-      render(startTime);
+
+      const elapsedTime = (currentTime - startTime) / 1000;
+
+      gl.useProgram(program);
+
+      const timeLocation = gl.getUniformLocation(program, 'u_time');
+      gl.uniform1f(timeLocation, elapsedTime);
+
+      gl.uniform1f(
+        gl.getUniformLocation(program, 'WIND_SCALE'),
+        shaderProps.WIND_SCALE
+      );
+      gl.uniform1f(
+        gl.getUniformLocation(program, 'WIND_SPEED'),
+        shaderProps.WIND_SPEED
+      );
+      gl.uniform2f(
+        gl.getUniformLocation(program, 'WIND_AMPLITUDE'),
+        shaderProps.WIND_AMPLITUDE_X,
+        shaderProps.WIND_AMPLITUDE_Y
+      );
+      gl.uniform1f(
+        gl.getUniformLocation(program, 'COLOR_SHIFT'),
+        shaderProps.COLOR_SHIFT
+      );
+      gl.uniform1f(
+        gl.getUniformLocation(program, 'JITTER_INTENSITY'),
+        shaderProps.JITTER_INTENSITY
+      );
+      gl.uniform1f(
+        gl.getUniformLocation(program, 'DRIFT_SCALE'),
+        shaderProps.DRIFT_SCALE
+      );
+      gl.uniform1f(
+        gl.getUniformLocation(program, 'DRIFT_INTENSITY'),
+        shaderProps.DRIFT_INTENSITY
+      );
+      gl.uniform1f(
+        gl.getUniformLocation(program, 'VERTICAL_BIAS'),
+        shaderProps.VERTICAL_BIAS
+      );
+
+      const positionLocation = gl.getAttribLocation(program, 'a_position');
+      gl.enableVertexAttribArray(positionLocation);
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+      const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+      gl.enableVertexAttribArray(texCoordLocation);
+      gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+      gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      if (!prefersReducedMotion) this.frame = requestAnimationFrame(render);
     };
+
+    this.render = render;
+    if (prefersReducedMotion) render(startTime);
+    else this.frame = requestAnimationFrame(render);
+  }
+
+  destroy() {
+    this.destroyed = true;
+    cancelAnimationFrame(this.frame);
+    this.frame = 0;
+    this.canvas?.remove();
+    this.canvas = null;
+    this.render = null;
+    this.image = null;
   }
 }

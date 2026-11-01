@@ -60,6 +60,7 @@ class AssetManager {
     this.started = false;
     this.handedOver = false;
     this.precacheAdoption = null;
+    this.lastAssetMap = null;
     this.listeners = new Set();
   }
 
@@ -526,17 +527,23 @@ class AssetManager {
       map[asset.url] = this.scheduler?.cacheKey(asset) || revisionKey(asset);
     }
 
+    const payload = JSON.stringify({ buildId: manifest.buildId, map });
+    // Bootstrap, adoption and commit can all reach this method. Only the first
+    // write for a given map needs to touch the cache or message the worker.
+    if (payload === this.lastAssetMap) return;
+
     try {
       const cache = await caches.open(META_CACHE);
       await cache.put(
         ASSET_MAP_URL,
-        new Response(JSON.stringify({ buildId: manifest.buildId, map }), {
+        new Response(payload, {
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-store',
           },
         }),
       );
+      this.lastAssetMap = payload;
       navigator.serviceWorker.controller?.postMessage({
         type: 'ASSET_MAP_UPDATED',
       });

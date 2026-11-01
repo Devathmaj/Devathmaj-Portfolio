@@ -162,7 +162,7 @@ const armGestureResume = () => {
     disarmGestureResume();
     const audio = getAudio();
     if (playback.wantsPlayback && audio.paused) {
-      audio.play().catch(() => {});
+      resumeShared();
     }
   };
   document.addEventListener('pointerdown', gestureResume, true);
@@ -182,6 +182,8 @@ export const playback = {
   wantsPlayback: false,
   volume: readVolume(),
   muted: readMuted(),
+  /** Saved position remembered before the media is loaded. */
+  pendingTime: 0,
   /** True while a homepage turntable is mounted and owns the transport. */
   attached: false,
   /** @type {HTMLElement | null} */
@@ -208,22 +210,45 @@ const canPlay = (type) => !type || playback.audio?.canPlayType(type) !== '';
 const playableSources = (track) => track.sources.filter((source) => canPlay(source.type));
 
 /**
+ * Seek to a remembered position once the browser knows the media duration.
+ * Nothing is fetched here; the caller owns loading the source.
+ * @param {HTMLAudioElement} audio
+ * @param {number} time
+ */
+const applyPendingTime = (audio, time) => {
+  const resumeAt = Number(time) > 0 ? Number(time) : 0;
+  if (!resumeAt) return;
+
+  const seek = () => {
+    if (Number.isFinite(audio.duration) && audio.duration > 0) {
+      audio.currentTime = Math.min(resumeAt, Math.max(0, audio.duration - 0.25));
+    }
+    if (playback.pendingTime === resumeAt) playback.pendingTime = 0;
+  };
+
+  if (audio.readyState >= 1) seek();
+  else audio.addEventListener('loadedmetadata', seek, { once: true });
+};
+
+/**
  * Move a track's audio into the shared element. Used by the off-home dock for
  * ended-track advance and media controls.
  * @param {VinylTrack} track
- * @param {{ autoplay?: boolean }} [options]
+ * @param {{ autoplay?: boolean, time?: number }} [options]
  */
-function loadSharedTrack(track, { autoplay = false } = {}) {
+function loadSharedTrack(track, { autoplay = false, time = 0 } = {}) {
   const audio = getAudio();
   const sources = playableSources(track);
   if (!sources.length) return false;
 
   playback.currentId = track.id;
   playback.session = true;
+  playback.pendingTime = time > 0 ? time : playback.pendingTime;
   audio.preload = 'metadata';
   audio.src = assetManager.getPlaybackUrl(sources[0].src);
   audio.load();
   audio.volume = playback.muted ? 0 : playback.volume;
+  applyPendingTime(audio, playback.pendingTime);
   if (autoplay) {
     audio.play().catch(() => {
       playback.wantsPlayback = false;
@@ -263,30 +288,39 @@ export function restorePlayback() {
   const sources = playableSources(track);
   if (!sources.length) return false;
 
-  audio.volume = playback.muted ? 0 : playback.volume;
-  audio.muted = playback.muted;
-  audio.preload = 'metadata';
-  audio.src = assetManager.getPlaybackUrl(sources[0].src);
-  audio.load();
-
   const resumeAt = typeof saved.currentTime === 'number' && Number.isFinite(saved.currentTime)
     ? Math.max(0, saved.currentTime)
     : 0;
-  const resumeSaved = () => {
-    if (resumeAt > 0 && Number.isFinite(audio.duration) && audio.duration > 0) {
-      audio.currentTime = Math.min(resumeAt, Math.max(0, audio.duration - 0.25));
-    }
-    if (!playback.wantsPlayback) return;
-    audio.play().catch((error) => {
-      playback.playing = false;
-      announce();
-      if (!(error instanceof DOMException) || error.name === 'NotAllowedError') {
-        armGestureResume();
-      }
-    });
-  };
-  if (audio.readyState >= 1) resumeSaved();
-  else audio.addEventListener('loadedmetadata', resumeSaved, { once: true });
+  playback.pendingTime = resumeAt;
+
+  audio.volume = playback.muted ? 0 : playback.volume;
+  audio.muted = playback.muted;
+
+  // A paused record is restored without touching the network or the media
+  // pipeline. The source is attached on the next play or record selection.
+  if (saved.playing) {
+    audio.preload = 'metadata';
+    audio.src = assetManager.getPlaybackUrl(sources[0].src);
+    audio.load();
+
+    const resumeSaved = () => {
+      applyPendingTime(audio, resumeAt);
+      if (!playback.wantsPlayback) return;
+      audio.play().catch((error) => {
+        playback.playing = false;
+        announce();
+        if (!(error instanceof DOMException) || error.name === 'NotAllowedError') {
+          armGestureResume();
+        }
+      });
+    };
+    if (audio.readyState >= 1) resumeSaved();
+    else audio.addEventListener('loadedmetadata', resumeSaved, { once: true });
+  } else if (playback.wantsPlayback) {
+    // The browser refused autoplay when the page was left. Wait for a gesture
+    // instead of loading the file now.
+    armGestureResume();
+  }
 
   updateMediaSession();
   announce();
@@ -331,8 +365,7 @@ const updateMediaSession = () => {
   const audio = getAudio();
   try {
     navigator.mediaSession.setActionHandler('play', () => {
-      playback.wantsPlayback = true;
-      audio.play().catch(() => {});
+      resumeShared();
     });
     navigator.mediaSession.setActionHandler('pause', () => {
       playback.wantsPlayback = false;
@@ -354,6 +387,35 @@ const stepSharedTrack = (direction) => {
   const next = playback.playlist[(index + direction + playback.playlist.length) % playback.playlist.length];
   if (next) loadSharedTrack(next, { autoplay: true });
 };
+
+/**
+ * Start or continue the shared transport. A restored record whose source was
+ * never attached is loaded here, so nothing is fetched before a real gesture.
+ */
+export function resumeShared() {
+  const track = trackById(playback.currentId);
+  if (!track) return false;
+
+  playback.wantsPlayback = true;
+  const audio = getAudio();
+
+  if (!audio.src) {
+    return loadSharedTrack(track, {
+      autoplay: true,
+      time: playback.pendingTime,
+    });
+  }
+
+  applyPendingTime(audio, playback.pendingTime);
+  audio.play().catch((error) => {
+    playback.playing = false;
+    announce();
+    if (!(error instanceof DOMException) || error.name === 'NotAllowedError') {
+      armGestureResume();
+    }
+  });
+  return true;
+}
 
 function stopSharedPlayback() {
   const audio = getAudio();
@@ -397,8 +459,7 @@ const buildDock = () => {
   dock.querySelector('[data-dock-toggle]')?.addEventListener('click', () => {
     const audio = getAudio();
     if (audio.paused) {
-      playback.wantsPlayback = true;
-      audio.play().catch(() => {});
+      resumeShared();
     } else {
       playback.wantsPlayback = false;
       audio.pause();
@@ -410,7 +471,7 @@ const buildDock = () => {
 };
 
 export function syncVinylDock() {
-  const active = playback.session && Boolean(playback.audio?.src) && Boolean(playback.currentId);
+  const active = playback.session && Boolean(playback.currentId);
   const onHome = window.location.pathname === '/' || window.location.pathname === '';
   if (!active || onHome) {
     if (playback.dock) playback.dock.hidden = true;
@@ -495,5 +556,5 @@ window.addEventListener('pagehide', () => savePlayback({ force: true }));
 window.addEventListener('pageshow', (event) => {
   if (!event.persisted || !playback.wantsPlayback) return;
   const audio = playback.audio;
-  if (audio?.paused) audio.play().catch(() => armGestureResume());
+  if (!audio || audio.paused) resumeShared();
 });
