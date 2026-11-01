@@ -1,4 +1,4 @@
-const DEFAULT_SHUFFLE_INTERVAL = 5000;
+const DEFAULT_SHUFFLE_INTERVAL = 60 * 60 * 1000;
 const STORAGE_KEY = 'active-quote-id';
 
 export default class QuoteShuffle {
@@ -26,7 +26,7 @@ export default class QuoteShuffle {
 
   getStartingIndex() {
     try {
-      const storedId = window.sessionStorage.getItem(STORAGE_KEY);
+      const storedId = window.localStorage.getItem(STORAGE_KEY);
       const storedIndex = this.quotes.findIndex(
         (quote) => quote.dataset.quoteId === storedId
       );
@@ -36,10 +36,7 @@ export default class QuoteShuffle {
       console.error('Failed to read the active quote:', error);
     }
 
-    return Math.max(
-      0,
-      this.quotes.findIndex((quote) => quote.classList.contains('is-active'))
-    );
+    return Math.floor(Math.random() * this.quotes.length);
   }
 
   showNextQuote() {
@@ -55,7 +52,7 @@ export default class QuoteShuffle {
     });
 
     try {
-      window.sessionStorage.setItem(
+      window.localStorage.setItem(
         STORAGE_KEY,
         this.quotes[index].dataset.quoteId
       );
