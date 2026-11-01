@@ -138,12 +138,11 @@ export default class ProjectShowcase {
     switch (event.key) {
       case 'ArrowRight':
       case 'ArrowDown':
-        nextIndex = (currentIndex + 1) % this.links.length;
+        nextIndex = currentIndex + 1;
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
-        nextIndex =
-          (currentIndex - 1 + this.links.length) % this.links.length;
+        nextIndex = currentIndex - 1;
         break;
       case 'Home':
         nextIndex = 0;
@@ -154,6 +153,8 @@ export default class ProjectShowcase {
       default:
         return;
     }
+
+    if (nextIndex < 0 || nextIndex >= this.links.length) return;
 
     event.preventDefault();
     this.links[nextIndex].focus();
@@ -174,8 +175,9 @@ export default class ProjectShowcase {
 
     if (currentIndex === -1) return;
 
-    const nextIndex =
-      (currentIndex + direction + this.chapters.length) % this.chapters.length;
+    const nextIndex = currentIndex + direction;
+
+    if (nextIndex < 0 || nextIndex >= this.chapters.length) return;
 
     this.activate(this.chapters[nextIndex].id, {
       updateHash: true,
@@ -237,9 +239,9 @@ export default class ProjectShowcase {
 
   updateStatus(chapter) {
     const index = this.chapters.findIndex((entry) => entry.id === chapter.id);
-    const previous =
-      this.chapters[(index - 1 + this.chapters.length) % this.chapters.length];
-    const next = this.chapters[(index + 1) % this.chapters.length];
+    const previous = index > 0 ? this.chapters[index - 1] : null;
+    const next =
+      index < this.chapters.length - 1 ? this.chapters[index + 1] : null;
 
     if (this.positionEl) {
       this.positionEl.textContent = `${pad(index + 1)} / ${pad(
@@ -261,16 +263,36 @@ export default class ProjectShowcase {
       }: ${chapter.title}`;
     }
 
-    if (this.prevTitleEl) this.prevTitleEl.textContent = previous.title;
-    if (this.nextTitleEl) this.nextTitleEl.textContent = next.title;
-    this.prevButton?.setAttribute(
-      'aria-label',
-      `Previous chapter: ${previous.title}`,
-    );
-    this.nextButton?.setAttribute(
-      'aria-label',
-      `Next chapter: ${next.title}`,
-    );
+    if (this.prevTitleEl) {
+      this.prevTitleEl.textContent = previous ? previous.title : '';
+    }
+    if (this.nextTitleEl) {
+      this.nextTitleEl.textContent = next ? next.title : '';
+    }
+
+    if (this.prevButton) {
+      this.prevButton.disabled = !previous;
+      if (previous) {
+        this.prevButton.setAttribute(
+          'aria-label',
+          `Previous chapter: ${previous.title}`,
+        );
+      } else {
+        this.prevButton.removeAttribute('aria-label');
+      }
+    }
+
+    if (this.nextButton) {
+      this.nextButton.disabled = !next;
+      if (next) {
+        this.nextButton.setAttribute(
+          'aria-label',
+          `Next chapter: ${next.title}`,
+        );
+      } else {
+        this.nextButton.removeAttribute('aria-label');
+      }
+    }
   }
 
   scrollTo(chapter, target = 'root', smooth = true) {

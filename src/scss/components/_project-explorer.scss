@@ -273,6 +273,23 @@
     transform: scale(0.98);
   }
 
+  &:disabled {
+    color: $color-text-mid;
+    border-color: $color-border-light;
+    background: transparent;
+    cursor: default;
+    opacity: 0.4;
+    transform: none;
+
+    &:hover,
+    &:focus-visible {
+      color: $color-text-mid;
+      border-color: $color-border-light;
+      background: transparent;
+      transform: none;
+    }
+  }
+
   @include with-focus-outline;
 }
 
