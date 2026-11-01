@@ -55,6 +55,7 @@ export default async function (eleventyConfig) {
 
   eleventyConfig.addPassthroughCopy('./src/js/vendor', 'js');
   eleventyConfig.addPassthroughCopy('./src/meta');
+  eleventyConfig.addPassthroughCopy({ './src/meta/favicon.ico': 'favicon.ico' });
   eleventyConfig.addPassthroughCopy('./src/fonts');
   eleventyConfig.addPassthroughCopy(
     './src/img/**/*.{png,jpg,jpeg,webp,avif,gif,svg}'

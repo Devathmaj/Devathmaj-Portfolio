@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 268 254" role="img" aria-labelledby="title desc">
+  <title id="title">Stylized letter D</title>
+  <desc id="desc">A bold orange letter D with a black offset extrusion and a rectangular inner counter with rounded right corners.</desc>
+
+  <!-- Black extruded body, visible along the left and lower edges. -->
+  <path fill="#050505" d="
+    M 82.5 15.5
+    H 181.5
+    C 215.0 15.5 237.0 37.3 237.0 69.8
+    V 137.2
+    C 237.0 181.0 216.5 210.7 181.2 225.7
+    C 168.4 231.1 154.0 233.0 137.0 233.0
+    H 49.5
+    C 42.8 233.0 39.0 229.2 39.0 222.5
+    V 59.0
+    C 39.0 54.0 40.6 50.7 44.2 47.1
+    L 72.9 19.7
+    C 76.0 16.8 78.8 15.5 82.5 15.5
+    Z"/>
+
+  <!-- Orange front face. The even-odd counter reveals the black body beneath it. -->
+  <path fill="#FA3B19" fill-rule="evenodd" stroke="#050505" stroke-width="2.2" stroke-linejoin="round" d="
+    M 82.8 16.2
+    H 184.6
+    C 214.8 16.2 234.7 35.7 234.7 66.9
+    V 138.0
+    C 234.7 154.7 232.3 167.1 225.1 178.0
+    C 214.6 193.6 195.0 202.5 169.6 202.5
+    H 83.7
+    C 77.6 202.5 74.7 199.2 74.7 193.1
+    V 25.6
+    C 74.7 19.9 77.5 16.2 82.8 16.2
+    Z
+
+    M 132.2 66.5
+    H 161.0
+    C 170.2 66.5 174.9 71.3 174.9 80.4
+    V 140.0
+    C 174.9 149.1 170.0 153.9 160.9 153.9
+    H 132.2
+    Z"/>
+</svg>
