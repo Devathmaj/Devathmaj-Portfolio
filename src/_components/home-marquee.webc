@@ -5,15 +5,6 @@
 </script>
 <div class="home-hero__marquee" data-marquee>
     <div class="home-hero__marquee-inner" data-marquee-inner>
-        <div class="tidal-widget" data-now-playing hidden>
-            <social-icon @icon="tidal" class="tidal-widget__icon"></social-icon>
-            <div class="tidal-widget__inner">
-                <a class="tidal-widget__track" data-now-playing-link hidden></a>
-                <span class="tidal-widget__track" data-now-playing-track></span>,
-                <span class="tidal-widget__artists" data-now-playing-artists></span>
-            </div>
-        </div>
-        <span>—</span>
         <span class="home-hero__marquee-locale">Kerala, India</span>
         <span>—</span>
         <span class="home-hero__marquee-time" data-tag="currentTime" @text="`${getTime()}`">11:03AM</span>

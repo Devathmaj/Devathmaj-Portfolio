@@ -22,82 +22,6 @@ import DefaultTransition from './transitions/Default';
 // ship a strict script-src CSP without hashes or 'unsafe-inline'.
 document.body.classList.remove('no-js');
 
-const NOW_PLAYING_CACHE_KEY = 'devathmaj-portfolio:now-playing';
-const NOW_PLAYING_CACHE_TTL = 6 * 60 * 60 * 1000;
-const clearCachedNowPlaying = () => {
-  try {
-    localStorage.removeItem(NOW_PLAYING_CACHE_KEY);
-  } catch {}
-};
-
-const showNowPlaying = (data) => {
-  document.querySelectorAll('[data-now-playing]').forEach((widget) => {
-    if (!data?.name || !data?.artists) {
-      widget.hidden = true;
-      return;
-    }
-
-    const link = widget.querySelector('[data-now-playing-link]');
-    const track = widget.querySelector('[data-now-playing-track]');
-    const artists = widget.querySelector('[data-now-playing-artists]');
-    artists.textContent = data.artists;
-    if (data.url) {
-      link.href = data.url;
-      link.textContent = data.name;
-      link.hidden = false;
-      track.hidden = true;
-    } else {
-      track.textContent = data.name;
-      track.hidden = false;
-      link.hidden = true;
-    }
-    widget.hidden = false;
-  });
-};
-
-const readCachedNowPlaying = () => {
-  try {
-    const cached = JSON.parse(localStorage.getItem(NOW_PLAYING_CACHE_KEY));
-    if (!cached?.name || !cached?.artists || !Number.isFinite(cached.savedAt) ||
-        Date.now() - cached.savedAt > NOW_PLAYING_CACHE_TTL) {
-      clearCachedNowPlaying();
-      return null;
-    }
-    return cached;
-  } catch {
-    return null;
-  }
-};
-
-const fetchTidal = () => {
-  const cached = readCachedNowPlaying();
-  if (cached) showNowPlaying(cached);
-
-  return fetch('/tidal')
-    .then((res) => {
-      if (!res.ok) throw new Error(`Now playing responded ${res.status}`);
-      return res.json();
-    })
-    .then((data) => {
-      if (!data?.name || !data?.artists) {
-        clearCachedNowPlaying();
-        showNowPlaying(null);
-        return;
-      }
-
-      try {
-        localStorage.setItem(NOW_PLAYING_CACHE_KEY, JSON.stringify({
-          ...data,
-          savedAt: Date.now(),
-        }));
-      } catch {}
-      showNowPlaying(data);
-    })
-    .catch(() => {
-      if (!cached) showNowPlaying(null);
-    });
-};
-
 window.navManager = new NavManager();
 const discovery = new DiscoveryStore();
 const discoveryUI = new DiscoveryUI(discovery);
@@ -235,7 +159,6 @@ Happy exploring!
     if (quoteStack) quoteShuffle = new QuoteShuffle(quoteStack);
 
     if (window.location.pathname === '/') {
-      fetchTidal();
       navManager.hide();
       document.body.classList.add('home');
       MatchMediaManager.add(({ conditions }) => {

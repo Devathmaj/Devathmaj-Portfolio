@@ -52,8 +52,8 @@ eleventy.config.js      Eleventy plugins, passthroughs, filters, collections
 rollup.config.js        single bundle: src/js/index.js -> _site/js/
 wrangler.toml           Cloudflare Pages settings (output: _site)
 _11ty/                  collections, filters, Markdown libraries, shortcodes
-lib/                    music, dates, Tidal and contact helpers
-functions/              Cloudflare Pages Functions: api/contact.js, tidal.js
+lib/                    music, dates and contact helpers
+functions/              Cloudflare Pages Functions: api/contact.js
 scripts/                dependency patches
 src/
   _components/          WebC components (home hero, marquee, page nav, …)
@@ -117,9 +117,8 @@ first record.
   allowed for template-level CSS custom properties. Keep new scripts external
   (or add an explicit hash/source) and test the contact page after changing it.
 - The contact form posts to `/api/contact`, a Cloudflare Pages Function that
-  verifies Turnstile and sends the message through Resend. The Tidal widget
-  calls `/tidal`. Both endpoints exist only under `wrangler pages dev` or a
-  Cloudflare Pages deployment — not under `npm start`.
+  verifies Turnstile and sends the message through Resend. It exists only under
+  `wrangler pages dev` or a Cloudflare Pages deployment — not under `npm start`.
 - The contact function needs `TURNSTILE_SECRET_KEY` and `RESEND_API_KEY`.
   `CONTACT_FROM_EMAIL` and `CONTACT_TO_EMAIL` are optional and default to
   `Portfolio Devathmaj <onboarding@resend.dev>` and `devathmaj@gmail.com`.
@@ -136,8 +135,8 @@ Cloudflare Pages uses `wrangler.toml` (`pages_build_output_dir = "_site"`), so
 `npm run build` must run before deploying. `_headers` and `_redirects` are
 copied to the deploy root.
 
-Cloudflare Pages auto-detects `functions/` and serves `tidal.js` at `/tidal`
-and `api/contact.js` at `/api/contact`. Runtime variables and secrets belong
+Cloudflare Pages auto-detects `functions/` and serves `api/contact.js` at
+`/api/contact`. Runtime variables and secrets belong
 in the Pages dashboard; `.dev.vars` is the local equivalent for
 `wrangler pages dev`. The Node.js compatibility flag is enabled in
 `wrangler.toml` for `node:crypto` and `Buffer`.

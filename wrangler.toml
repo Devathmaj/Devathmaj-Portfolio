@@ -4,6 +4,5 @@ compatibility_date = "2026-10-31"
 compatibility_flags = ["nodejs_compat"]
 
 # Secrets and runtime configuration (RESEND_API_KEY, TURNSTILE_SECRET_KEY,
-# CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL, TIDAL_CLIENT_ID, TIDAL_CLIENT_SECRET,
-# LAST_FM_USER, LAST_FM_API_KEY) are set in the Cloudflare Pages dashboard.
+# CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL) are set in the Cloudflare Pages dashboard.
 # Local values belong in the git-ignored .dev.vars file.
