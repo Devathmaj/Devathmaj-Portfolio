@@ -1,119 +1,113 @@
-﻿const DEFAULT_SHUFFLE_INTERVAL = 60 * 60 * 1000;
-const STORAGE_KEY_PREFIX = 'active-image-src';
+﻿import {
+  DEFAULT_ROTATION_INTERVAL,
+  applyInitialActiveState,
+  getDelayUntilNextRotation,
+  getRotationIndex,
+  syncFitFrame,
+} from './rotation.js';
 
 export default class ImageShuffle {
-  constructor(root, { interval = DEFAULT_SHUFFLE_INTERVAL } = {}) {
+  constructor(root, { interval = DEFAULT_ROTATION_INTERVAL } = {}) {
     this.root = root;
     this.interval =
       Number(root.dataset.shuffleInterval) ||
       Number(interval) ||
-      DEFAULT_SHUFFLE_INTERVAL;
+      DEFAULT_ROTATION_INTERVAL;
     this.images = Array.from(root.querySelectorAll('[data-shuffle-image]'));
-    this.storageKey = `${STORAGE_KEY_PREFIX}:${this.getStorageKeySuffix()}`;
     this.timer = null;
     this.destroyed = false;
 
     if (!this.images.length) return;
 
-    this.currentIndex = this.getStartingIndex();
+    this.currentIndex = getRotationIndex(
+      this.images.length,
+      this.interval,
+    );
 
-    this.images.forEach((image, index) => {
-      image.classList.toggle('is-active', index === this.currentIndex);
-    });
+    const hasActiveImage = this.images.some((image) =>
+      image.classList.contains('is-active'),
+    );
 
-    this.persistActive();
-    this.syncFrame(this.images[this.currentIndex]);
-
-    const activeImage = this.images[this.currentIndex];
-    const activeReady =
-      activeImage && activeImage.decode
-        ? activeImage.decode().catch(() => {})
-        : Promise.resolve();
-
-    activeReady.then(() => {
-      if (this.destroyed) return;
-      const prefersReducedMotion = window.matchMedia(
-        '(prefers-reduced-motion: reduce)'
-      ).matches;
+    if (hasActiveImage) {
+      // The synchronous initializer already picked the scheduled item. Only
+      // update it if the time slot advanced while the module was loading.
+      this.setActive(this.currentIndex);
       this.syncFrame(this.images[this.currentIndex]);
-      if (this.images.length > 1 && !prefersReducedMotion) {
-        this.timer = window.setInterval(
-          () => this.showNextImage(),
-          this.interval
-        );
-      }
+    } else {
+      applyInitialActiveState(this.root, () => {
+        this.setActive(this.currentIndex);
+        this.syncFrame(this.images[this.currentIndex]);
+      });
+    }
+
+    this.startTimer();
+  }
+
+  setActive(index) {
+    this.currentIndex = index;
+
+    this.images.forEach((image, imageIndex) => {
+      image.classList.toggle('is-active', imageIndex === index);
     });
   }
 
-  getStorageKeySuffix() {
-    if (this.root.dataset.shuffleKey) return this.root.dataset.shuffleKey;
+  startTimer() {
+    if (this.timer || this.images.length <= 1 || this.destroyed) return;
 
-    const firstImage = this.images[0];
-    return firstImage?.getAttribute('src') || 'default';
-  }
+    const prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  getStartingIndex() {
-    try {
-      const storedSrc = window.localStorage.getItem(this.storageKey);
-      if (storedSrc) {
-        const storedIndex = this.images.findIndex(
-          (image) => image.getAttribute('src') === storedSrc
+    if (prefersReducedMotion) return;
+
+    const scheduleNext = () => {
+      if (this.destroyed) return;
+
+      this.timer = window.setTimeout(() => {
+        this.timer = null;
+        if (this.destroyed) return;
+
+        const nextIndex = getRotationIndex(
+          this.images.length,
+          this.interval,
         );
-        if (storedIndex !== -1) return storedIndex;
-      }
-    } catch (error) {
-      console.error('Failed to read the active image:', error);
-    }
 
-    return Math.floor(Math.random() * this.images.length);
+        if (nextIndex !== this.currentIndex) {
+          this.setActive(nextIndex);
+          this.syncFrameAfterDecode(this.images[nextIndex]);
+        }
+
+        scheduleNext();
+      }, getDelayUntilNextRotation(this.interval));
+    };
+
+    scheduleNext();
   }
 
-  persistActive() {
-    try {
-      window.localStorage.setItem(
-        this.storageKey,
-        this.images[this.currentIndex].getAttribute('src')
-      );
-    } catch (error) {
-      console.error('Failed to store the active image:', error);
-    }
-  }
+  syncFrameAfterDecode(image) {
+    if (!image) return;
 
-  showNextImage() {
-    this.images[this.currentIndex].classList.remove('is-active');
-    this.currentIndex = (this.currentIndex + 1) % this.images.length;
-    const nextImage = this.images[this.currentIndex];
-    nextImage.classList.add('is-active');
-    this.persistActive();
-
-    const ready = nextImage.decode
-      ? nextImage.decode().catch(() => {})
+    const ready = image.decode
+      ? image.decode().catch(() => {})
       : Promise.resolve();
 
     ready.then(() => {
-      if (!this.destroyed) this.syncFrame(nextImage);
+      if (!this.destroyed) this.syncFrame(image);
     });
   }
 
   syncFrame(image) {
-    if (!image || !this.root.hasAttribute('data-shuffle-fit')) return;
-
-    const { naturalWidth, naturalHeight } = image;
-    if (!naturalWidth || !naturalHeight) return;
-
-    const frame = this.root.parentElement || this.root;
-    frame.style.setProperty(
-      '--letter-ratio',
-      (naturalWidth / naturalHeight).toFixed(4)
-    );
+    syncFitFrame(this.root, image);
   }
 
   destroy() {
     this.destroyed = true;
+
     if (this.timer) {
-      window.clearInterval(this.timer);
+      window.clearTimeout(this.timer);
       this.timer = null;
     }
+
+    this.root.classList.remove('is-initializing');
   }
 }
-

@@ -38,6 +38,17 @@ export default [
     ],
   },
   {
+    // This small classic script is loaded synchronously by the rotation
+    // components so the scheduled item is active before the first paint.
+    input: 'src/js/rotation-init.js',
+    output: {
+      file: '_site/js/rotation-init.js',
+      format: 'iife',
+      sourcemap: false,
+    },
+    plugins: [terser()],
+  },
+  {
     // The service worker is bundled separately so Workbox can inject the
     // precache manifest after Eleventy and image optimisation have finished.
     input: 'src/sw/service-worker.js',

@@ -11,6 +11,7 @@ import SiteNavigation from './SiteNavigation';
 import { DiscoveryStore } from './DiscoveryStore';
 import DiscoveryUI from './DiscoveryUI';
 import QuoteShuffle from './QuoteShuffle';
+import ImageShuffle from './ImageShuffle';
 import { restorePlayback, syncVinylDock } from './vinylAudio';
 import { assetManager } from './assets/AssetManager';
 
@@ -230,19 +231,11 @@ Happy exploring!
     }
 
     const shuffleRoots = document.querySelectorAll('[data-image-shuffle]');
-    if (shuffleRoots.length) {
-      import('./ImageShuffle')
-        .then(({ default: ImageShuffle }) => {
-          shuffleRoots.forEach((root) => {
-            if (root.isConnected) {
-              imageShuffles.push(new ImageShuffle(root));
-            }
-          });
-        })
-        .catch((error) => {
-          console.error('Failed to load the ImageShuffle module:', error);
-        });
-    }
+    shuffleRoots.forEach((root) => {
+      if (root.isConnected) {
+        imageShuffles.push(new ImageShuffle(root));
+      }
+    });
     const projectEntriesRoot = document.querySelector('.projects-block-list');
     if (projectEntriesRoot) {
       import('./ProjectEntries')

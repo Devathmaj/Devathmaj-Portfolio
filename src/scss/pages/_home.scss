@@ -258,6 +258,10 @@
       }
     }
 
+    &.is-initializing img {
+      transition: none;
+    }
+
     body.dark & {
       filter: invert(1);
       mix-blend-mode: color-dodge;
@@ -374,6 +378,10 @@
     container-type: inline-size;
     transition: --letter-ratio 0.8s $ease-out-editorial;
 
+    &:has(.home-letter__images.is-initializing) {
+      transition: none;
+    }
+
     @media (min-width: 1200px) {
       place-items: center;
       container-type: size;
@@ -423,6 +431,10 @@
     &.is-active {
       opacity: 1;
     }
+  }
+
+  &__images.is-initializing img {
+    transition: none;
   }
 
   &__horizon {

@@ -1,7 +1,7 @@
 <div class="home-letter themed">
     <div class="home-letter__stage">
         <div class="home-letter__images" data-image-shuffle data-shuffle-fit data-shuffle-key="home-letter" data-shuffle-interval="3600000">
-            <img data-shuffle-image class="home-letter__img is-active" src="/img/art/creation-of-adam.jpg"
+            <img data-shuffle-image class="home-letter__img" src="/img/art/creation-of-adam.jpg"
                 alt="The Creation of Adam by Michelangelo"
                 sizes="(min-width: 1024px) 72rem, 90vw" loading="lazy" />
             <img data-shuffle-image class="home-letter__img" src="/img/art/starry-night.jpg"
@@ -22,3 +22,4 @@
         </div>
     </div>
 </div>
+<script src="/js/rotation-init.js" webc:keep></script>

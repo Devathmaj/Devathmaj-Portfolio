@@ -11,8 +11,8 @@
             React.</p>
     </hgroup>
     <span class="home-hero__warning">(Open to software / backend / infra roles.)</span>
-    <div class="home-hero__accent-image" data-image-shuffle data-shuffle-key="home-hero" data-shuffle-interval="3600000">
-        <img data-shuffle-image class="home-hero__accent-img is-active"
+    <div class="home-hero__accent-image" data-image-shuffle data-shuffle-key="home-hero" data-shuffle-interval="1000">
+        <img data-shuffle-image class="home-hero__accent-img"
             src="/img/projects/confessit/confessit.png" alt="ConfessIt project screenshot"
             sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="eager" fetchpriority="high" />
         <img data-shuffle-image class="home-hero__accent-img"
@@ -56,3 +56,4 @@
         </template>
     </nav>
 </section>
+<script src="/js/rotation-init.js" webc:keep></script>
