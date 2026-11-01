@@ -1,0 +1,135 @@
+@use './abstract/variables' as *;
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Neue Montreal', sans-serif;
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  grid-template-rows: 1fr 6rem;
+  align-items: center;
+  height: 100vh;
+  min-height: 100vh;
+  margin: 0;
+  padding: 24px;
+  color: $color-text;
+  border-inline-start: 24px solid #2a2722;
+  background-color: var(--color-background);
+
+  --color-text: #fafafa;
+  --color-background: #000;
+  --color-text-mid: #666;
+  --color-border-mid: #bdbdbd;
+  --color-border-light: #eee;
+}
+
+.has-barbed-border {
+  background-image: url('/img/decor/thorn-vertical-dark.svg');
+  background-repeat: repeat-y;
+  background-position-x: 24px;
+  background-position-y: 50%;
+  background-size: 195px;
+}
+
+.container {
+  max-width: 1000px;
+
+  &--centered {
+    margin-inline: auto;
+  }
+
+  &--bottom {
+    align-self: end;
+  }
+
+  &--wide {
+    max-width: calc(100vw - 4rem);
+  }
+}
+
+.header {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  max-width: 520px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.intro {
+  font-size: 24px;
+  text-transform: uppercase;
+  color: $color-text-mid;
+
+  &--centered {
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .accent {
+    color: $color-text;
+  }
+}
+
+h1 {
+  font-family: $font-serif-display;
+  font-size: 100px;
+  font-weight: normal;
+  line-height: 1;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.page-title {
+  font-family: $font-display;
+  font-size: 240px;
+  line-height: 0.8;
+  text-transform: uppercase;
+}
+
+.row {
+  display: grid;
+  column-gap: 2rem;
+  grid-template-columns: min-content 1fr;
+  align-items: end;
+}
+
+.project-title {
+  font-size: 136px;
+  line-height: 0.9;
+  text-align: center;
+}
+
+.tags {
+  font-size: 24px;
+  position: fixed;
+  bottom: 2rem;
+  left: calc(2rem + 24px);
+  text-transform: uppercase;
+}
+
+.footer {
+  font-size: 24px;
+  text-transform: uppercase;
+  color: $color-text-mid;
+}
+
+.disclaimer {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+}
+
+.barb-bar {
+  width: 100%;
+  height: 180px;
+  border: 2px solid #787878aa;
+  border-radius: $bdrs;
+  background-image: url('/img/decor/thorns-rotated-on-black.png');
+  background-repeat: repeat-x;
+  background-position-y: 50%;
+  background-size: 110px;
+}

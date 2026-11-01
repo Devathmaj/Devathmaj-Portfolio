@@ -1,0 +1,104 @@
+<script webc:setup>
+    const kateBushQuote = `Sys Nominal: ON — Computer Science Graduate (2026), secure role-based systems, automation and AI-powered features.`
+
+    function getRecordTime() {
+        return new Date().toLocaleString('en-US', {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Asia/Kolkata',
+        })
+    }
+
+</script>
+<section class="home-about">
+    <div class="container">
+        <h2 class="home-about__title">
+            <span class="home-about__title-inner">
+                <span class="home-about__title-echo home-about__title-echo--before" aria-hidden="true">About</span>
+                <span class="home-about__title-text">About</span>
+                <span class="home-about__title-echo home-about__title-echo--after" aria-hidden="true">About</span>
+            </span>
+        </h2>
+        <div class="home-about__marquee" data-marquee>
+            <div class="home-about__marquee-inner" data-marquee-inner>
+                <template webc:nokeep @raw="kateBushQuote"></template>
+            </div>
+        </div>
+        <div class="home-about__layout">
+            <div class="home-about__bio">
+                <p>Hi, I’m Devathmaj, a software engineer from Kerala. I like building things that work from the
+                    database all the way to the browser and I care about making them secure, dependable and easy
+                    to run.</p>
+                <p>I’ve built a role-based distribution system as a freelancer, automated network backups as a
+                    DevOps intern and created my own projects in AI, real-time chat and automation. My main tools
+                    are Python, FastAPI, PostgreSQL, React, Docker and Azure.</p>
+                <p>I’m currently looking for opportunities to join a team, learn from experienced engineers and
+                    keep shipping useful software.</p>
+            </div>
+            <div class="home-about__details">
+                <dl class="home-about__record" webc:if="profile">
+                    <div class="home-about__record-row">
+                        <dt class="home-about__record-label">Focus</dt>
+                        <dd class="home-about__record-value" @text="profile.focus"></dd>
+                    </div>
+                    <div class="home-about__record-row">
+                        <dt class="home-about__record-label">Education</dt>
+                        <dd class="home-about__record-value" @text="profile.education"></dd>
+                    </div>
+                    <div class="home-about__record-row">
+                        <dt class="home-about__record-label">Based in</dt>
+                        <dd class="home-about__record-value">
+                            <span>Kerala, India</span>
+                            <span class="home-about__record-sep" aria-hidden="true">·</span>
+                            <time class="home-about__clock" data-tag="currentTime" data-clock-timezone="Asia/Kolkata"
+                                @text="getRecordTime()"></time>
+                            <span class="home-about__clock-zone">IST</span>
+                        </dd>
+                    </div>
+                    <div class="home-about__record-row">
+                        <dt class="home-about__record-label">Status</dt>
+                        <dd class="home-about__record-value home-about__record-status">
+                            <span class="home-about__status-dot" aria-hidden="true"></span>
+                            <span>Open to software, backend and infrastructure roles</span>
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+            <a class="home-about__milestones" href="/certificates">
+                <span class="home-about__milestones-label">Certifications</span>
+                <span class="home-about__milestones-body">
+                    <span class="home-about__milestones-text">A few milestones in my learning journey.</span>
+                    <span class="home-about__milestones-meta">
+                        <span>AWS AI Practitioner</span>
+                        <span>Microsoft Fabric</span>
+                        <span>Azure AI</span>
+                        <span>Best Paper Award</span>
+                    </span>
+                </span>
+            </a>
+            <div class="home-about__media">
+                <div class="home-about__image">
+                    <img src="/img/brand/portrait.jpg" alt="Portrait of Devathmaj A Kaliyathan"
+                        sizes="(min-width: 1000px) 38vw, (min-width: 600px) 84vw, 120vw">
+                </div>
+                <div class="home-about__contact-card">
+                    <a class="home-about__contact-link" href="/contact/">
+                        <social-icon icon="email" class="home-about__contact-icon"></social-icon>
+                        <span>Get in touch</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="home-about__footer">
+            <a class="home-about__more" href="/about/">
+                <span class="home-about__more-text">Read more about me</span>
+                <span class="home-about__more-rule" aria-hidden="true"></span>
+                <about-arrow class="home-about__more-arrow"></about-arrow>
+            </a>
+            <div class="home-about__signature" aria-hidden="true">
+                <span>Same<br>curiosity<br>different<br>problems</span>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,380 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+.page-nav {
+  --banner-offset: 7rem;
+
+  position: absolute;
+  z-index: 3;
+  inset-inline: 0;
+  top: 0;
+  margin-inline: 1rem;
+  padding-block-start: calc(
+    1rem + max(var(--banner-offset, 0px), var(--callout-height, 0px))
+  );
+  transform: translateY(0);
+  text-transform: uppercase;
+  text-wrap: balance;
+  opacity: 1;
+
+  @media (max-width: 599px) {
+    &__orbit {
+      margin-block-end: 0.75rem;
+    }
+
+    &__utility {
+      margin-block-start: 0.75rem;
+    }
+  }
+
+  @media (min-width: 600px) and (max-width: 899px) {
+    row-gap: 0.5rem;
+
+    &__utility {
+      margin-block-start: 2rem;
+    }
+  }
+
+  @include screen(504px) {
+    --banner-offset: 5rem;
+  }
+  @include screen(sm) {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+  }
+  @include screen(lg) {
+    --banner-offset: calc(2.4vw + 2rem);
+
+    column-gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    margin-block-end: 0;
+  }
+
+  &--inert {
+    user-select: none;
+    pointer-events: none;
+  }
+
+  // The nav is permanently hidden on the home page. Hide it in CSS rather
+  // than waiting for NavManager (which runs after GSAP/Taxi have loaded) so
+  // the nav never flashes into view during a hard refresh.
+  .home & {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .no-js.home & {
+    display: none;
+  }
+
+  &__tagline {
+    max-width: 30ch;
+    margin-block-end: 1em;
+    color: $color-text-mid;
+
+    @include screen(sm) {
+      grid-row-end: span 2;
+      text-align: right;
+    }
+    @include screen(lg) {
+      max-width: unset;
+      grid-column: 3;
+      grid-row: 1;
+    }
+
+    > span {
+      color: $color-text;
+    }
+  }
+
+  &__back-link {
+    position: relative;
+    display: inline-block;
+    padding-inline-end: 11ch;
+    text-decoration: none;
+
+    span {
+      position: absolute;
+      left: 1.5ch;
+      display: inline-block;
+      width: max-content;
+      margin-block-start: -1em;
+      padding-block: 1em;
+      transform-origin: 0 0;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+
+      &::after {
+        position: absolute;
+        bottom: calc(1em + 1px);
+        left: 0;
+        width: 100%;
+        height: 1px;
+        content: '';
+        transition: transform 0.2s $ease-out-editorial;
+        transform: scaleX(0);
+        transform-origin: 100% 0;
+        background-color: currentColor;
+        @media (prefers-reduced-motion: reduce) {
+          transition-duration: 0s;
+        }
+      }
+    }
+
+    &:hover,
+    &:active {
+      span::after {
+        transform: scaleX(1);
+        transform-origin: 0 0;
+      }
+    }
+  }
+
+  &__utility {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block-start: 0.25rem;
+
+    @include screen(lg) {
+      grid-column: 1;
+      grid-row: 1;
+      margin-block-start: 0;
+    }
+  }
+
+  &__orbit {
+    position: relative;
+    z-index: 20;
+    text-transform: none;
+
+    @include screen(lg) {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+
+  &__orbit-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2rem;
+    padding: 0.25rem 0.65rem;
+    color: $color-background;
+    border: 1px solid $color-text;
+    border-radius: 999px;
+    background: $color-text;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: color 0.2s $ease-out-editorial, background-color 0.2s $ease-out-editorial;
+
+    &:hover,
+    &[aria-expanded='true'] {
+      color: $color-text;
+      background: $color-background;
+    }
+
+    &:focus-visible {
+      outline: 2px dashed $color-border-mid;
+      outline-offset: 3px;
+    }
+  }
+
+  &__orbit-toggle-mark {
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform 0.25s $ease-out-editorial;
+
+    .page-nav__orbit-toggle[aria-expanded='true'] & {
+      transform: rotate(45deg);
+    }
+  }
+
+  &__orbit-menu {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    overflow: hidden;
+    place-items: center;
+    background-color: color-mix(in srgb, $color-background 68%, transparent);
+    backdrop-filter: blur(5px) saturate(0.7);
+    isolation: isolate;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  &__orbit-close {
+    position: absolute;
+    z-index: 1;
+    top: max(1rem, env(safe-area-inset-top));
+    right: max(1rem, env(safe-area-inset-right));
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid $color-border-mid;
+    border-radius: 999px;
+    color: $color-text;
+    background: $color-background;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+
+    &:focus-visible {
+      outline: 2px dashed $color-border-mid;
+      outline-offset: 3px;
+    }
+  }
+
+  &__orbit-wheel {
+    position: relative;
+    container-type: inline-size;
+    width: min(420px, calc(100vw - 2rem), calc(100vh - 2rem));
+    width: min(420px, calc(100vw - 2rem), calc(100dvh - 2rem));
+    aspect-ratio: 1;
+    flex: none;
+    filter: drop-shadow(0 0.75rem 1.75rem rgb(0 0 0 / 16%));
+  }
+
+  &__orbit-chart,
+  &__orbit-links {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  &__orbit-chart {
+    overflow: visible;
+  }
+
+  &__orbit-segment {
+    fill: $color-background;
+    stroke: $color-border-light;
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: fill 0.2s $ease-out-editorial, stroke 0.2s $ease-out-editorial;
+
+    &.is-highlighted {
+      fill: color-mix(in srgb, $color-text 10%, $color-background);
+      stroke: $color-text;
+      stroke-width: 2.5;
+    }
+
+    &.is-current {
+      fill: $color-text;
+      stroke: $color-text;
+    }
+  }
+
+  &__orbit-links {
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  &__orbit-link {
+    position: absolute;
+    top: var(--orbit-y);
+    left: var(--orbit-x);
+    display: grid;
+
+    // Keep the pill inside the ring band at every wheel size; a fixed rem
+    // width made the current item poke through the circle on small screens.
+    width: clamp(3.2rem, 20cqw, 5.1rem);
+    min-height: clamp(1.75rem, 10cqw, 2.25rem);
+    padding: 0.35rem 0.25rem;
+    place-items: center;
+    transform: translate(-50%, -50%);
+    border-radius: 999px;
+    color: $color-text;
+    font-size: clamp(0.5rem, 2.8cqw, 0.8rem);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    white-space: nowrap;
+    pointer-events: auto;
+    transition: color 0.2s $ease-out-editorial, background-color 0.2s $ease-out-editorial, transform 0.2s $ease-out-editorial;
+
+    &:hover,
+    &:focus-visible,
+    &.is-highlighted {
+      color: $color-text;
+      background: $color-background;
+      box-shadow: inset 0 0 0 1px $color-text;
+    }
+
+    &.is-current {
+      color: $color-background;
+      background: $color-text;
+      box-shadow: none;
+    }
+
+    &:hover,
+    &:focus-visible {
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    &:focus-visible {
+      outline: 2px dashed $color-border-mid;
+
+      // Inset the ring so the focused (often current) item never grows
+      // past the wheel's edge.
+      outline-offset: -4px;
+    }
+  }
+
+  &__orbit-center {
+    position: absolute;
+    z-index: 1;
+    inset: 50%;
+    display: grid;
+    width: 5.2rem;
+    height: 5.2rem;
+    place-items: center;
+    transform: translate(-50%, -50%);
+    border: 1px solid $color-border-mid;
+    border-radius: 50%;
+    background: $color-background;
+    color: $color-text;
+    font: inherit;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s $ease-out-editorial, background-color 0.2s $ease-out-editorial, border-color 0.2s $ease-out-editorial;
+
+    &:hover,
+    &:focus-visible {
+      border-color: $color-text;
+      box-shadow: inset 0 0 0 1px $color-text;
+    }
+
+    &:focus-visible {
+      outline: 2px dashed $color-border-mid;
+      outline-offset: 3px;
+    }
+
+    &[aria-current='page'] {
+      color: $color-background;
+      background: $color-text;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &__orbit-toggle,
+    &__orbit-toggle-mark,
+    &__orbit-segment,
+    &__orbit-link,
+    &__orbit-center {
+      transition-duration: 0s;
+    }
+  }
+}

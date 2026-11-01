@@ -1,0 +1,126 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  overscroll-behavior-y: none;
+
+  &:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Neue Montreal', sans-serif;
+  margin: 0;
+  color: var(--color-text);
+  background-color: var(--color-background);
+
+  --color-text: #2a2722;
+  --color-background: #fafafa;
+  --color-text-mid: #666;
+  --color-border-mid: #bdbdbd;
+  --color-border-light: #eee;
+}
+
+a {
+  color: inherit;
+
+  @include with-focus-outline;
+
+  &.with-arrow {
+    &::after {
+      display: inline-block;
+      margin-inline-start: 0.5ch;
+      content: '→';
+    }
+
+    &--out {
+      &::after {
+        content: '↗';
+      }
+    }
+  }
+}
+
+a:not([class]) {
+  &:hover {
+    color: $color-text-mid;
+  }
+}
+
+h1:not([class]) {
+  font-family: $font-serif-display;
+  font-size: 3rem;
+  font-weight: normal;
+}
+
+ul,
+ol {
+  padding-inline-start: 1rem;
+}
+
+del {
+  color: $color-text-mid;
+}
+
+ins {
+  text-decoration: none;
+}
+
+picture img {
+  width: 100%;
+  height: 100%;
+}
+
+code,
+pre {
+  overflow-x: scroll;
+  max-width: 100%;
+}
+
+:not(pre) > code {
+  position: relative;
+  background-color: $color-border-light;
+
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: -0.5ex;
+    content: '';
+    border-radius: 4px;
+    background-color: $color-border-light;
+  }
+}
+
+kbd {
+  position: relative;
+  display: inline-block;
+  margin-inline: 0.5ex;
+  padding-inline: 0.25ex;
+
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: -0.25ex -0.5ex;
+    content: '';
+    border: 1px solid $color-border-light;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px $color-border-light;
+  }
+}
+
+.container {
+  margin-inline: 1rem;
+}
+
+.router-target {
+  min-height: 100vh;
+}

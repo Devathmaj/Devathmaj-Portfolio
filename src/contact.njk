@@ -1,0 +1,120 @@
+---js
+{
+    title: 'Contact',
+    tags: ['page'],
+    backLink: '/',
+    backLinkText: 'Home',
+    eleventyComputed: {
+        footerLinks: (data) => [
+            ...data.footerLinks,
+            { name: "Contact", url: "/contact" },
+        ],
+    },
+}
+---
+<header class="page-header page-header--contact">
+    <div class="page-header__inner">
+        <h1 class="page-header__title">Contact</h1>
+        <figure class="contact-correspondence">
+            {% include 'graphics/contact-correspondence.njk' %}
+            <figcaption><span>{{ contact.location }}</span><span>{% for channel in contact.channels %}{{ channel.name }}{% if not loop.last %} / {% endif %}{% endfor %}</span></figcaption>
+        </figure>
+        <p class="page-header__description">Open to backend, infrastructure and platform roles, as well as focused freelance projects.</p>
+    </div>
+</header>
+
+<div class="container">
+    <div class="contact-sheet">
+        <aside class="contact-direct" aria-labelledby="contact-direct-title">
+            <div class="contact-direct__inner">
+                <h2 class="visually-hidden" id="contact-direct-title">Contact details</h2>
+                <p class="contact-direct__label">Direct</p>
+                <p class="contact-direct__system">Skip the form. Write directly.</p>
+                <ul class="contact-direct__list">
+                    {% for channel in contact.channels %}
+                        <li class="contact-direct__item">
+                            <span class="contact-direct__item-label">{{ channel.name }}</span>
+                            <a class="contact-direct__link{% if channel.email %} contact-direct__link--email{% endif %}" href="{{ channel.url }}"{% if channel.external %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ channel.label }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class="contact-direct__note">Email or LinkedIn &mdash; both reach me directly.</p>
+            </div>
+            <div class="contact-direct__ornament" aria-hidden="true">
+                {% include 'graphics/nouveau-corner.svg' %}
+            </div>
+        </aside>
+
+        <div class="contact-form-card">
+            <div class="contact-form-card__header">
+                <h2 id="contact-form-title">Send a message</h2>
+                <p>Please share a few details about your project.</p>
+            </div>
+
+            <form class="contact-form" id="contactForm" aria-labelledby="contact-form-title">
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name" required>
+                        <label for="name">Name</label>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                        <label for="email">Email</label>
+                    </div>
+                </div>
+                <div class="form-group form-group--full">
+                    <input type="text" id="subject" name="subject" placeholder="Project inquiry" required>
+                    <label for="subject">Subject</label>
+                </div>
+                <div class="form-group form-group--full">
+                    <textarea id="message" name="message" placeholder="Tell me about your project..." required></textarea>
+                    <label for="message">Message</label>
+                </div>
+                <div class="honeypot" aria-hidden="true">
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAAEtv53G9bikXI2ca"></div>
+                <button type="submit" class="submit-btn">Send message</button>
+                <div class="success-message" id="successMessage" role="status" aria-live="polite"></div>
+            </form>
+        </div>
+    </div>
+
+    <section class="contact-record" aria-labelledby="contact-record-title">
+        <header class="contact-record__header">
+            <h2 class="contact-record__title" id="contact-record-title">Elsewhere</h2>
+            <p class="contact-record__note">Public work, the resume and where I am.</p>
+        </header>
+        <ul class="contact-record__list">
+            <li class="contact-record__item">
+                <a class="contact-record__entry" href="{{ contact.github.url }}" target="_blank" rel="noopener noreferrer">
+                    <span class="contact-record__index" aria-hidden="true">01</span>
+                    <span class="contact-record__headline">
+                        <span class="contact-record__name">GitHub</span>
+                        <span class="contact-record__arrow" aria-hidden="true">&nearr;</span>
+                    </span>
+                    <span class="contact-record__meta">{{ contact.github.label }}</span>
+                </a>
+            </li>
+            <li class="contact-record__item">
+                <a class="contact-record__entry" href="/resume/Devathmaj_Resume.pdf" target="_blank" rel="noopener noreferrer">
+                    <span class="contact-record__index" aria-hidden="true">02</span>
+                    <span class="contact-record__headline">
+                        <span class="contact-record__name">Resume</span>
+                        <span class="contact-record__arrow" aria-hidden="true">&nearr;</span>
+                    </span>
+                    <span class="contact-record__meta">PDF download</span>
+                </a>
+            </li>
+            <li class="contact-record__item">
+                <div class="contact-record__entry">
+                    <span class="contact-record__index" aria-hidden="true">03</span>
+                    <span class="contact-record__headline">
+                        <span class="contact-record__name">Based in</span>
+                    </span>
+                    <span class="contact-record__meta">{{ contact.location }} &middot; {{ contact.availability }}</span>
+                </div>
+            </li>
+        </ul>
+    </section>
+</div>

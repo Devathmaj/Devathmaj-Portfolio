@@ -1,0 +1,72 @@
+@use 'vendor/reset';
+@use 'vendor/prism';
+
+@use 'abstract/variables' as *;
+@use 'abstract/mixins' as *;
+
+@use 'base/layout';
+@use 'base/rendered';
+@use 'base/article-content';
+@use 'base/utils';
+
+@use 'components/page-nav';
+@use 'components/image-lightbox';
+@use 'components/home-nav';
+@use 'components/tidal-widget';
+@use 'components/footer';
+@use 'components/discovery';
+@use 'components/care-secret';
+@use 'components/project-entry';
+@use 'components/experience-row';
+@use 'components/project-block';
+@use 'components/page-header';
+@use 'components/project-header';
+@use 'components/project-dossier';
+@use 'components/project-explorer';
+@use 'components/project-figure';
+@use 'components/project-more';
+@use 'components/grid-overlay';
+@use 'components/humanity';
+@use 'components/vinyl-player';
+
+@use 'pages/home';
+@use 'pages/projects';
+@use 'pages/experience';
+@use 'pages/about';
+@use 'pages/links';
+@use 'pages/certificates';
+@use 'pages/contact';
+@use 'pages/now';
+
+.project-list {
+  margin: 0;
+  padding: 0;
+
+  @include screen(sm) {
+    display: grid;
+    grid-column-end: span 2;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  @include screen(lg) {
+    grid-template-columns: repeat(auto-fit, minmax(346px, 1fr));
+  }
+}
+
+.barb-bar {
+  width: 100%;
+  height: 7.6rem;
+  border: 2px solid $color-text;
+  border-radius: $bdrs;
+  background-image: url('/img/decor/thorn.svg');
+  background-repeat: repeat-x;
+  background-position-y: 50%;
+  background-size: 75px;
+
+  @include screen(lg) {
+    width: auto;
+    height: clamp(7.6rem, 1.8647rem + 10.1961vw, 11.5rem);
+    margin-block-end: 0;
+    background-size: min(7vw, 105px);
+  }
+}

@@ -1,0 +1,288 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+.discovery-notice {
+  position: fixed;
+  inset: 0;
+  width: min(28rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  margin: auto;
+  padding: clamp(1.25rem, 5vw, 2rem);
+  border: 2px solid $color-text;
+  border-radius: $bdrs;
+  color: $color-text;
+  background: $color-background;
+
+  &::backdrop {
+    background: color-mix(in srgb, $color-background 68%, transparent);
+    backdrop-filter: blur(5px) saturate(0.7);
+  }
+
+  &__title {
+    margin-block-end: 1rem;
+    font-family: $font-serif-display;
+    font-size: clamp(2rem, 7vw, 2.75rem);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.05;
+  }
+
+  &__discoveries {
+    margin-block-start: 1.5rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid $color-border-light;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+
+    &-label {
+      color: $color-text-mid;
+      font-size: 0.75rem;
+    }
+
+    &-list {
+      display: grid;
+      gap: 0.35rem;
+      margin-block-start: 0.5rem;
+      padding: 0;
+      list-style: none;
+    }
+
+    a {
+      color: $color-text;
+      text-decoration-line: underline;
+      text-decoration-color: $color-border-mid;
+      text-underline-offset: 0.2em;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      a:hover { text-decoration-color: currentColor; }
+    }
+
+    &.is-single {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+
+      .discovery-notice__discoveries-list { margin-block-start: 0; }
+    }
+  }
+
+  &__record {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-block: 2rem 0.75rem;
+    font-size: 0.75rem;
+    color: $color-text-mid;
+  }
+
+  &__count {
+    color: $color-text;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__progress {
+    height: 2px;
+    background: $color-border-light;
+
+    span {
+      display: block;
+      height: 100%;
+      background: $color-text;
+      transform-origin: left;
+    }
+  }
+
+  &__dismiss {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 2.75rem;
+    margin-block-start: 2rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid $color-text;
+    border-radius: $bdrs;
+    color: $color-background;
+    background: $color-text;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 160ms $ease-out-editorial;
+
+    @include with-focus-outline;
+
+    &:active { transform: scale(0.98); }
+  }
+}
+
+.footer__discovery {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 4.25rem;
+  gap: 0.75rem;
+  margin: 0 auto clamp(2.5rem, 6vw, 4.5rem);
+  padding: 0.625rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 999px;
+  color: $color-text;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 12%);
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  text-align: start;
+  cursor: pointer;
+  appearance: none;
+  transition: transform 160ms $ease-out-editorial, border-color 160ms $ease-out-editorial;
+
+  @include with-focus-outline;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: color-mix(in srgb, currentColor 40%, transparent);
+
+      .footer__discovery-caret {
+        color: currentColor;
+        transform: translate(1px, -1px);
+      }
+    }
+  }
+
+  &:active { transform: scale(0.98); }
+
+  &-icon {
+    display: grid;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+    border-radius: 50%;
+    color: $color-text;
+    background: color-mix(in srgb, currentColor 8%, transparent);
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.5;
+    }
+  }
+
+  &-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.25rem;
+  }
+
+  &-title {
+    font-family: $font-serif-display;
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  &-message {
+    color: color-mix(in srgb, currentColor 65%, transparent);
+    font-size: 0.7rem;
+  }
+
+  &-steps {
+    display: flex;
+    gap: 0.25rem;
+    margin-inline-start: 0.25rem;
+
+    span {
+      width: 0.7rem;
+      height: 0.25rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, currentColor 20%, transparent);
+      transition: background-color 180ms $ease-out-editorial;
+
+      &.is-unlocked { background: currentColor; }
+    }
+  }
+
+  &-count {
+    min-width: 2.25rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  &-caret {
+    margin-inline-start: 0.1rem;
+    color: color-mix(in srgb, currentColor 45%, transparent);
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: transform 160ms $ease-out-editorial, color 160ms $ease-out-editorial;
+  }
+
+  &.is-complete {
+    border-color: color-mix(in srgb, currentColor 40%, transparent);
+
+    .footer__discovery-icon,
+    .footer__discovery-count {
+      background: color-mix(in srgb, currentColor 12%, transparent);
+    }
+  }
+
+  @media (max-width: 420px) {
+    gap: 0.5rem;
+    padding-inline: 0.5rem;
+
+    &-icon {
+      flex-basis: 2.4rem;
+      width: 2.4rem;
+      height: 2.4rem;
+    }
+
+    &-steps {
+      gap: 0.15rem;
+      margin-inline-start: 0;
+    }
+
+    &-caret { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &-caret { transition: none; }
+    &-steps span { transition: none; }
+  }
+}
+
+.home-nav__now {
+  .home-nav__link-description { white-space: normal; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: discovery-reveal 240ms $ease-out-editorial;
+  }
+}
+
+@keyframes discovery-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discovery-notice__dismiss { transition: none; }
+}

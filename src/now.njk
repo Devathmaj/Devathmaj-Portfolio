@@ -1,0 +1,27 @@
+---js
+{
+    title: 'Now',
+    tags: ['page'],
+    bodyClass: 'now-page',
+}
+---
+{% set entry = collections['now'] | first %}
+<main class="now-page__content">
+    <header class="now-masthead">
+        <p class="now-masthead__label">
+            <span class="now-masthead__mark" aria-hidden="true">✳</span>
+            <span class="now-masthead__route">Now</span>
+            <span class="now-masthead__slash" aria-hidden="true">/</span>
+            <span class="now-masthead__note">Hidden page</span>
+        </p>
+        <p class="now-masthead__meta">
+            <time datetime="{{ entry.date | toISOString }}">{{ entry.date | humanReadableDate }}</time>
+            <span class="now-masthead__dot" aria-hidden="true">·</span>
+            <span>{{ entry.content | readTime }}</span>
+        </p>
+    </header>
+
+    <div class="now-letter">
+        {{ entry.content | safe }}
+    </div>
+</main>

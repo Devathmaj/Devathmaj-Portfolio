@@ -1,0 +1,80 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+.image-lightbox {
+  --image-lightbox-padding: clamp(0.75rem, 3vw, 2rem);
+
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: var(--image-lightbox-padding);
+  border: 0;
+  background-color: $color-background;
+  color: $color-text;
+  overflow: hidden;
+  overscroll-behavior: contain;
+
+  &[open] {
+    display: grid;
+    place-items: center;
+    animation: image-lightbox-in 0.2s $ease-out-editorial;
+  }
+
+  &::backdrop {
+    background-color: $color-background;
+  }
+}
+
+.image-lightbox__close {
+  position: absolute;
+  z-index: 1;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid $color-border-mid;
+  border-radius: 999px;
+  color: $color-text;
+  background-color: $color-background;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  &:focus-visible {
+    outline: 2px dashed $color-border-mid;
+    outline-offset: 3px;
+  }
+}
+
+.image-lightbox__image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 2 * var(--image-lightbox-padding));
+  max-height: calc(100dvh - 2 * var(--image-lightbox-padding));
+  object-fit: contain;
+  background-color: #fff;
+  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 18%);
+}
+
+@keyframes image-lightbox-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-lightbox[open] {
+    animation: none;
+  }
+}

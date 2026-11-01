@@ -1,0 +1,137 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+.project-block {
+  --project-padding: 2rem 1.5rem;
+  --project-title-size: clamp(2.25rem, 5vw, 3.5rem);
+  --project-description-size: 0.95rem;
+  --project-overlay-start: 45%;
+  --project-overlay-end: 85%;
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 20rem;
+  margin-block-end: 1rem;
+  padding: var(--project-padding);
+  overflow: hidden;
+  border: 2px solid color-mix(in srgb, #fff 24%, transparent);
+  border-radius: $bdrs;
+  color: #fff;
+  background: var(--project-fill, #0b1220) center / cover no-repeat;
+
+  @include screen(sm) {
+    margin-block-end: 0;
+  }
+
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    content: '';
+    background: linear-gradient(
+      color-mix(in srgb, #030303 var(--project-overlay-start), transparent),
+      color-mix(in srgb, #030303 var(--project-overlay-end), transparent)
+    );
+  }
+
+  &:hover,
+  &:focus-within {
+    border-color: #fff;
+  }
+
+  &--primary {
+    --project-padding: 2.5rem 2rem;
+    --project-title-size: clamp(3.5rem, 8vw, 7rem);
+    --project-description-size: 1rem;
+    --project-overlay-start: 30%;
+    --project-overlay-end: 78%;
+
+    min-height: 26rem;
+    border-color: color-mix(in srgb, #fff 45%, transparent);
+
+    @include screen(sm) {
+      --project-padding: 3.5rem 3rem;
+
+      min-height: 32rem;
+    }
+
+    @include screen(lg) {
+      min-height: 34rem;
+    }
+  }
+
+  &--secondary {
+    --project-padding: 2.5rem 2rem;
+    --project-title-size: clamp(2.75rem, 5vw, 4.5rem);
+    --project-description-size: 1rem;
+    --project-overlay-start: 38%;
+    --project-overlay-end: 82%;
+
+    min-height: 24rem;
+
+    @include screen(sm) {
+      min-height: 28rem;
+    }
+  }
+
+  &--tertiary {
+    --project-padding: 2rem 1.5rem;
+    --project-title-size: clamp(2.25rem, 3.5vw, 3rem);
+    --project-description-size: 0.9rem;
+    --project-overlay-start: 48%;
+    --project-overlay-end: 86%;
+
+    min-height: 22rem;
+  }
+
+  &__meta {
+    font-family: $font-sans;
+    font-size: 0.75rem;
+    line-height: 1.1;
+    display: flex;
+    justify-content: space-between;
+    margin-block-end: 1rem;
+    text-transform: uppercase;
+    color: color-mix(in srgb, #fff 70%, transparent);
+  }
+
+  &__title {
+    font-family: $font-serif-display;
+    font-size: var(--project-title-size);
+    font-weight: 400;
+    line-height: 0.95;
+    margin-block-end: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  &__description {
+    font-family: $font-sans;
+    font-size: var(--project-description-size);
+    line-height: 1.4;
+    margin-block-end: 2rem;
+    color: color-mix(in srgb, #fff 80%, transparent);
+  }
+
+  &--primary,
+  &--secondary {
+    .project-block__description {
+      max-width: 52ch;
+    }
+  }
+
+  &__link {
+    font-family: $font-sans;
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 1.1;
+    max-width: max-content;
+    margin-block-start: auto;
+    margin-inline-start: auto;
+    padding-block: 1rem;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+}

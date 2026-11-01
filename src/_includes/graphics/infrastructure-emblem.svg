@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 237 233" aria-hidden="true" focusable="false">
+  <g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round">
+    <path d="M66 42h105v133H66zM66 87h105m-105 44h105M50 35v147h137V35M118.5 20v22m0 133v28M66 66H32V37m139 29h36V37M66 152H20v50m151-50h46v50"/>
+    <path d="m80 57 10 10-10 10m20 0h20M80 101h52m-52 13h52M80 144h52m-52 13h52"/>
+    <rect x="106" y="4" width="25" height="16" rx="1"/>
+    <rect x="106" y="215" width="25" height="14" rx="1"/>
+    <path d="M118.5 203v12M7 17h50v29H7zm173 0h50v29h-50zM5 202h38v25H5zm189 0h38v25h-38z"/>
+    <path d="M32 46v17m-13 0h26m149 0h26m-13 0V46M10 96h16v25H10zm56 12H26m188-12h-4v25h16V96ZM171 108h39"/>
+  </g>
+  <path d="M81 180h8v5h-8zm14 0h8v5h-8zm14 0h8v5h-8zm14 0h8v5h-8zm14 0h8v5h-8zm14 0h8v5h-8z"/>
+  <circle cx="150" cy="66" r="4"/><circle cx="150" cy="108" r="4"/><circle cx="150" cy="152" r="4"/>
+  <g fill="none" stroke="currentColor" stroke-width="1">
+    <path d="M73 34h91M58 49v9m0 8v9m0 8v9m0 8v9m0 8v9m0 8v9m0 8v9m0 8v9M180 49v9m0 8v9m0 8v9m0 8v9m0 8v9m0 8v9m0 8v9m0 8v9M82 195h73m-55 6h37"/>
+    <circle cx="118.5" cy="116.5" r="112" stroke-dasharray="2 7"/>
+  </g>
+</svg>

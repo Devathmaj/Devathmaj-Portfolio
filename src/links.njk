@@ -1,0 +1,42 @@
+---js
+{
+    backLink: '/',
+    backLinkText: 'Home',
+    tags: ['page']
+}
+---
+<header class="page-header page-header--without-border page-header--compact">
+    <p class="links-page__hidden-note">
+        <span class="links-page__hidden-mark" aria-hidden="true">✳</span>
+        <span>Congrats! <em>You found one of the hidden pages.</em></span>
+    </p>
+    <div class="page-header__inner">
+        <h1 class="page-header__title">Links</h1>
+        <p class="page-header__description"><em>The web is better when we leave trails for one another. A collection of people, projects, and corners of the internet worth passing along.</em></p>
+    </div>
+</header>
+<div class="links-page">
+    <div class="container links-page__description">
+        <p class="links-page__title">you are leaving this site</p>
+        <p class="links-page__subtitle">bound for stranger pastures in the wider web</p>
+        <p  class="links-page__warning">(go with caution and with care)</p>
+    </div>
+     <button class="links-page__action">
+        (<span class="links-page__action-text">This layout isn't working for me</span>)</button>
+    <div class="links-list-wrapper">
+        <ul class="links-list">
+            {% for link in links %}
+                <li>
+                    <a href="{{ link.url }}">{{ link.text }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <button class="links-page__spinner">
+            ↻
+            <span class="visually-hidden">Spin the wheel</span>
+        </button>
+        <div class="links-page-background">
+            {% include 'graphics/chains.svg' %}
+        </div>
+    </div>
+</div>

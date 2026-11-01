@@ -1,0 +1,93 @@
+{% set pageTitle = site.baseTitle %}
+{% if title %}
+    {% set pageTitle = title + ' | ' + pageTitle %}
+{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if meta.title %}
+    <title>{{ meta.title }}</title>
+    {% else %}
+    <title>{{ pageTitle }}</title>
+    {% endif %}
+    {% if meta.description %}
+    <meta name="description" content="{{ meta.description }}" />
+    {% else %}
+    <meta name="description" content="Computer Science Graduate (2026) with experience across the full stack, from schema design and API development to containerized deployment on Azure. Built secure, role-based systems and automation tools that reduced manual work. Integrated AI-powered features using Python, FastAPI, PostgreSQL and React." />
+    {% endif %}
+    
+    {% if noindex %}
+    <meta name="robots" content="noindex" />
+    {% endif %}
+    
+    <link rel="canonical" href="https://devathmaj.github.io{{ page.url }}">
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/meta/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/meta/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/meta/favicon-16x16.png" />
+    <link rel="me" href="https://github.com/Devathmaj">
+    <link rel="me" href="https://linkedin.com/in/devathmaj">
+    <link rel="me" href="mailto:devathmaj@gmail.com">
+    <link rel="manifest" href="/meta/site.webmanifest" />
+    <link rel="mask-icon" href="/meta/safari-pinned-tab.svg" color="#000000" />
+    <meta name="msapplication-TileColor" content="#2a2722" />
+    <meta name="theme-color" content="#2a2722" />
+    <meta name="generator" content="eleventy">
+
+    <meta property="og:url" content="https://devathmaj.me{{ page.url }}">
+    <meta property="og:type" content="website">
+    {% if meta.title %}
+    <meta property="og:title" content="{{ meta.title }}">
+    {% else %}
+    <meta property="og:title" content="{{ pageTitle }}">
+    {% endif %}
+    {% if meta.description %}
+    <meta property="og:description" content="{{ meta.description }}">
+    {% else %}
+    <meta property="og:description" content="Computer Science Graduate (2026) with experience across the full stack, from schema design and API development to containerized deployment on Azure. Built secure, role-based systems and automation tools that reduced manual work. Integrated AI-powered features using Python, FastAPI, PostgreSQL and React.">
+    {% endif %}
+    {% if og %}
+        <meta property="og:image" content="{{ og }}">
+    {% endif %}
+
+    {% if page.url === '/' %}
+        <link rel="preload" href="/fonts/manuka-black.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/subset-LouizeDisplay.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/subset-LouizeDisplay-Italic.woff2" as="font" type="font/woff2" crossorigin />
+    {% else %}
+        <link rel="preload" href="/fonts/subset-Louize.woff2" as="font" type="font/woff2" crossorigin />
+    {% endif %}
+
+    <link rel="stylesheet" href="/css/fonts.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+
+</head>
+
+<body class="no-js {% if bodyClass %}{{ bodyClass }}{% endif %}">
+    {% include 'humanity.njk' %}
+    {% renderTemplate "webc", { backLink: backLink, backLinkText: backLinkText } %}
+        <page-nav :@back-link="backLink" :@back-link-text="backLinkText"></page-nav>
+    {% endrenderTemplate %}
+    <div data-taxi class="router-target">
+        <div data-taxi-view data-view="{{ page.url }}">
+
+        {{ content | safe }}
+        {% renderTemplate "webc", { backLink: backLink, backLinkText: backLinkText, footerLinks: footerLinks } %}
+            <page-nav-data :@back-link="backLink" :@back-link-text="backLinkText" :@footer-links="footerLinks"></page-nav-data>
+        {% endrenderTemplate %}
+        </div>
+    </div>
+    {% include 'footer.njk' %}
+    {% include 'discovery-notice.njk' %}
+    {% include 'grid.njk' %}
+     <script>
+        document.body.classList.remove('no-js');
+    </script>
+    <script src="/js/vendor/splitting.min.js"></script>
+    <script src="/js/index.js" type="module"></script>
+</body>
+</html>

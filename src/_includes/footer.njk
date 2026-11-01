@@ -1,0 +1,76 @@
+<footer class="footer themed dark">
+        <button class="footer__discovery" type="button" data-discovery-progress data-discovery-trigger aria-haspopup="dialog" aria-controls="discovery-notice">
+            <span class="footer__discovery-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" focusable="false">
+                    <path d="M6 18V7.5A2.5 2.5 0 0 1 8.5 5H18M6 12h7.5A2.5 2.5 0 0 1 16 14.5V19" />
+                    <circle cx="6" cy="19" r="2" />
+                    <circle cx="18" cy="5" r="2" />
+                    <circle cx="16" cy="19" r="2" />
+                </svg>
+            </span>
+            <span class="footer__discovery-copy">
+                <span class="footer__discovery-title" data-discovery-title>Hidden routes</span>
+                <span class="footer__discovery-message" data-discovery-message>Find both secret paths</span>
+            </span>
+            <span class="footer__discovery-steps" aria-hidden="true">
+                <span data-discovery-step="1"></span>
+                <span data-discovery-step="2"></span>
+            </span>
+            <span class="footer__discovery-count" data-discovery-count>0/2</span>
+            <span class="footer__discovery-caret" aria-hidden="true">↗</span>
+        </button>
+        <span class="visually-hidden" role="status" aria-live="polite" data-discovery-announcement>Hidden Routes Unlocked 0/2</span>
+        <nav class="footer__nav">
+            <section class="footer__section footer__section--breadcrumb{% if footerLinks.length <= 1 %} footer__section--collapsed{% endif %}">
+                <div class="footer__meta-title">You are here</div>
+                <div class="footer__breadcrumbs">
+                    {% for link in footerLinks %}
+                        <a class="footer__breadcrumb{% if link.isTitle %} footer__breadcrumb--title{% endif %}" href="{{ link.url }}">{{- link.name -}}</a>
+                    {% endfor %}
+                </div>
+            </section>
+            <section class="footer__section">
+                <a class="footer__link" href="/">Home</a>
+            </section>
+            {% for linkGroup in site.nav %}
+            <section class="footer__section footer__section--link-group{% if linkGroup.footerClass%} {{ linkGroup.footerClass }}{% endif %}">
+                <div class="footer__meta-title">{{ linkGroup.title }}</div>
+                {% for link in linkGroup.links %}
+                <div>
+                    <a class="footer__link" href="{{ link.url }}">{{ link.text }}</a>
+                    <span class="footer__link-description">{{ link.description }}</span>
+                </div>
+                {% endfor %}
+                {% if linkGroup.title == 'SELF' %}
+                <template data-discovery-template="now">
+                    <div data-discovery-content="now">
+                        <a class="footer__link" href="/now/">Now</a>
+                        <span class="footer__link-description">Current focus, hobbies, projects and interests</span>
+                    </div>
+                </template>
+                {% endif %}
+                {% if linkGroup.title == 'CRAFT' %}
+                <template data-discovery-template="links">
+                    <div data-discovery-content="links">
+                        <a class="footer__link" href="/links/">Links</a>
+                        <span class="footer__link-description">A collection of interesting places</span>
+                    </div>
+                </template>
+                {% endif %}
+            </section>
+            {% endfor %}
+            <section class="footer__section">
+                <div class="footer__meta-title">Contact</div>
+                <a class="footer__link" href="mailto:devathmaj@gmail.com">devathmaj@gmail.com</a>
+
+            </section>
+        </nav>
+        <div class="footer__colophon">
+            <!-- Made you look, you massive dork you 😘 -->
+            <span>© <time data-tag="currentTime" data-clock-timezone="UTC" data-clock-format="date-time"></time></span>
+            <span>As usual it is made with love</span>
+        </div>
+        <div class="footer__graphic">
+            {% include 'graphics/infrastructure-emblem.svg' %}
+        </div>
+    </footer>

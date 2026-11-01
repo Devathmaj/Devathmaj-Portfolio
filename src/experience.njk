@@ -1,0 +1,182 @@
+---js
+{
+    title: 'Experience',
+    tags: ['page'],
+    backLink: '/',
+    backLinkText: 'Home',
+    pagination: {
+        data: 'experience',
+        size: 1,
+        alias: 'job',
+    },
+    permalink: '/experience/{{ job.slug }}/',
+    eleventyComputed: {
+        footerLinks: (data) => [
+            ...data.footerLinks,
+            { name: "Experience", url: "/experience" },
+        ],
+    },
+}
+---
+{% set recordNumber = pagination.pageNumber + 1 %}
+{% set recordTotal = experience.length %}
+{% set recordIndex %}{% if recordNumber < 10 %}0{% endif %}{{ recordNumber }}{% endset %}
+{% set totalIndex %}{% if recordTotal < 10 %}0{% endif %}{{ recordTotal }}{% endset %}
+{% from 'graphics/record-motifs.njk' import rack, database %}
+<div class="experience-page">
+    <header class="page-header page-header--experience experience-page__header">
+        <div class="page-header__inner experience-page__masthead">
+            <h1 class="page-header__title experience-page__title">Experience</h1>
+            <div class="experience-page__aside">
+                <p class="experience-page__record">
+                    <span class="experience-page__record-label">System record</span>
+                    <span class="experience-page__record-count">{{ recordIndex }} / {{ totalIndex }}</span>
+                </p>
+                <div class="experience-strip" aria-hidden="true">
+                    {% include 'graphics/experience-strip.njk' %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <article class="experience-record" aria-labelledby="experience-record-title">
+        <header class="experience-record__head">
+            <span class="experience-record__index" aria-hidden="true">({{ recordIndex }})</span>
+            <div class="experience-record__identity">
+                <h2 class="experience-record__name" id="experience-record-title">{{ job.name }}</h2>
+                {% if job.system %}
+                    <p class="experience-record__system">{{ job.system }}</p>
+                {% endif %}
+            </div>
+            <div class="experience-record__meta">
+                <div class="experience-record__meta-item">
+                    <span class="experience-record__meta-label">Period</span>
+                    <span class="experience-record__meta-value">{{ job.period }}</span>
+                </div>
+                <div class="experience-record__meta-item">
+                    <span class="experience-record__meta-label">Location</span>
+                    <span class="experience-record__meta-value">{{ job.location }}</span>
+                </div>
+                <a class="experience-record__resume" href="/resume/Devathmaj_Resume.pdf">Resume <span aria-hidden="true">↗</span></a>
+            </div>
+        </header>
+
+        <div class="experience-motif experience-motif--plate" aria-hidden="true">
+            <svg viewBox="{% if job.visual.kind == 'distribution' %}0 0 137 188{% else %}0 0 94 96{% endif %}" preserveAspectRatio="xMidYMid meet" focusable="false">
+                {% if job.visual.kind == 'distribution' %}{{ rack(0, 0) }}{% else %}{{ database(0, 0) }}{% endif %}
+            </svg>
+        </div>
+
+        <figure class="experience-system">
+            <div class="experience-system__drawing">{% include 'graphics/experience-system.njk' %}</div>
+            <figcaption class="experience-system__caption">
+                <span class="experience-system__label">System</span>
+                <div class="experience-system__body">
+                    <p class="experience-system__line">{{ job.visual.caption }}</p>
+                    <ul class="experience-system__stages" role="list">
+                        {% for stage in job.visual.stages %}<li>{{ stage }}</li>{% endfor %}
+                    </ul>
+                </div>
+            </figcaption>
+        </figure>
+
+        <section class="experience-outcomes" aria-labelledby="experience-outcomes-title">
+            <h3 class="experience-outcomes__heading" id="experience-outcomes-title">Outcomes</h3>
+            <ul class="experience-outcomes__list" role="list">
+                {% for outcome in job.outcomes %}
+                    <li class="experience-outcomes__outcome">
+                        <span class="experience-outcomes__value">{{ outcome.value }}</span>
+                        <span class="experience-outcomes__metric">{{ outcome.label }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="experience-outcomes__note">{{ job.notes.outcomes }}</p>
+        </section>
+
+        <dl class="experience-facts">
+            <div class="experience-facts__row">
+                <dt class="experience-facts__label">Role</dt>
+                <dd class="experience-facts__value">{{ job.role }}</dd>
+                <dd class="experience-facts__note">{{ job.notes.role }}</dd>
+            </div>
+            <div class="experience-facts__row">
+                <dt class="experience-facts__label">Scope</dt>
+                <dd class="experience-facts__value">{{ job.scope }}</dd>
+                <dd class="experience-facts__note">{{ job.notes.scope }}</dd>
+            </div>
+            <div class="experience-facts__row">
+                <dt class="experience-facts__label">Constraints</dt>
+                <dd class="experience-facts__value">{{ job.constraints }}</dd>
+                <dd class="experience-facts__note">{{ job.notes.constraints }}</dd>
+            </div>
+            <div class="experience-facts__row">
+                <dt class="experience-facts__label">Decisions</dt>
+                <dd class="experience-facts__value">{{ job.decisions }}</dd>
+                <dd class="experience-facts__note">{{ job.notes.decisions }}</dd>
+            </div>
+        </dl>
+
+        <section class="experience-stack" aria-labelledby="experience-stack-title">
+            <div class="experience-stack__head">
+                <h3 class="experience-stack__heading" id="experience-stack-title">Stack</h3>
+                <p class="experience-stack__meta">
+                    <svg class="experience-stack__glyph" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M3 5.5 10 2l7 3.5-7 3.5-7-3.5Z"/>
+                        <path d="M3 10 10 13.5 17 10M3 14.5 10 18l7-3.5"/>
+                    </svg>
+                    <span>{{ job.stack.length }} tools</span>
+                </p>
+            </div>
+            <ul class="experience-stack__list" role="list">
+                {% for item in job.stack %}
+                    <li class="experience-stack__chip">
+                        <svg class="experience-stack__chip-icon" aria-hidden="true" focusable="false"><use href="/img/tech/tech-icons.svg#{{ item.icon }}"></use></svg>
+                        <span>{{ item.name }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="experience-stack__note">{{ job.notes.stack }}</p>
+        </section>
+
+        {% if job.build %}
+            <section class="experience-build" aria-labelledby="experience-build-title">
+                <header class="experience-build__head">
+                    <h3 class="experience-build__heading" id="experience-build-title">What I built</h3>
+                    <p class="experience-build__lead">{{ job.build.lead }}</p>
+                </header>
+                <ul class="experience-build__list" role="list">
+                    {% for item in job.build.items %}
+                        <li class="experience-build__item">
+                            <span class="experience-build__item-index" aria-hidden="true">{% if loop.index < 10 %}0{% endif %}{{ loop.index }}</span>
+                            <h4 class="experience-build__item-title">{{ item.title }}</h4>
+                            <p class="experience-build__item-text">{{ item.text }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        <nav class="experience-next" aria-label="Experience navigation">
+            <div class="experience-next__context">
+                {% if pagination.href.next %}
+                    <span class="experience-next__label">A second record follows</span>
+                    <p class="experience-next__description">{{ experience[pagination.pageNumber + 1].name }}, {{ experience[pagination.pageNumber + 1].role }}, {{ experience[pagination.pageNumber + 1].period }}.</p>
+                {% elif pagination.href.previous %}
+                    <span class="experience-next__label">The first record</span>
+                    <p class="experience-next__description">{{ experience[pagination.pageNumber - 1].name }}, {{ experience[pagination.pageNumber - 1].role }}, {{ experience[pagination.pageNumber - 1].period }}.</p>
+                {% endif %}
+            </div>
+            {% if pagination.href.next %}
+                <a class="experience-next__link experience-next__link--next" href="{{ pagination.href.next }}" rel="next">
+                    <span class="experience-next__title">Next record</span>
+                    <span class="experience-next__arrow" aria-hidden="true">→</span>
+                </a>
+            {% elif pagination.href.previous %}
+                <a class="experience-next__link experience-next__link--previous" href="{{ pagination.href.previous }}" rel="prev">
+                    <span class="experience-next__arrow" aria-hidden="true">←</span>
+                    <span class="experience-next__title">Previous record</span>
+                </a>
+            {% endif %}
+        </nav>
+    </article>
+</div>

@@ -1,0 +1,141 @@
+---js
+{
+    title: 'Certificates',
+    tags: ['page'],
+    backLink: '/',
+    backLinkText: 'Home',
+    eleventyComputed: {
+        footerLinks: (data) => [
+            ...data.footerLinks,
+            { name: "Certificates", url: "/certificates" },
+        ],
+    },
+}
+---
+{% set total = certificates.length %}
+{% set totalLabel = "0" ~ total if total < 10 else total %}
+<div class="certificate-page">
+    <header class="certificate-page__header">
+        <h1 class="certificate-page__title">Certificates</h1>
+        <div class="credential-seal">{% include 'graphics/credential-seal.njk' %}</div>
+        <p class="certificate-page__count">{{ totalLabel }} Records</p>
+    </header>
+
+    <section class="certificate-archive" id="certificate-archive" data-certificate-archive aria-label="Certificate plates">
+        <div class="certificate-archive__labels" data-certificate-labels>
+            <p class="visually-hidden" data-certificate-status aria-live="polite"></p>
+            {% for certificate in certificates %}
+                <article class="certificate-label" id="certificate-label-{{ certificate.number }}" data-certificate-label="{{ loop.index0 }}"{% if not loop.first %} hidden{% endif %}>
+                    <h2 class="certificate-label__title">{{ certificate.title }}</h2>
+                    <p class="certificate-label__system">{{ certificate.system }}</p>
+                    <dl class="certificate-label__facts">
+                        <div class="certificate-label__fact">
+                            <dt>Register</dt>
+                            <dd>{{ certificate.number }} / {{ totalLabel }}</dd>
+                        </div>
+                        <div class="certificate-label__fact">
+                            <dt>Type</dt>
+                            <dd>{{ certificate.category }}</dd>
+                        </div>
+                        <div class="certificate-label__fact">
+                            <dt>Issuer</dt>
+                            <dd>{{ certificate.issuer }}</dd>
+                        </div>
+                        <div class="certificate-label__fact">
+                            <dt>{{ certificate.dateLabel }}</dt>
+                            <dd><time datetime="{{ certificate.datetime }}">{{ certificate.date }}</time></dd>
+                        </div>
+                        {% if certificate.expiry %}
+                            <div class="certificate-label__fact">
+                                <dt>Expires</dt>
+                                <dd>{{ certificate.expiry }}</dd>
+                            </div>
+                        {% endif %}
+                        {% if certificate.score %}
+                            <div class="certificate-label__fact">
+                                <dt>Score</dt>
+                                <dd>{{ certificate.score }}</dd>
+                            </div>
+                        {% endif %}
+                        {% if certificate.length %}
+                            <div class="certificate-label__fact">
+                                <dt>Length</dt>
+                                <dd>{{ certificate.length }}</dd>
+                            </div>
+                        {% endif %}
+                        {% if certificate.credential %}
+                            <div class="certificate-label__fact">
+                                <dt>{{ certificate.credentialLabel }}</dt>
+                                <dd>{{ certificate.credential }}</dd>
+                            </div>
+                        {% endif %}
+                    </dl>
+                    <div class="certificate-label__actions">
+                        {% if certificate.verify %}
+                            <a class="certificate-label__action" href="{{ certificate.verify }}" target="_blank" rel="noopener noreferrer">Online verifiable <span aria-hidden="true">&#8599;</span></a>
+                        {% endif %}
+                        {% if certificate.pdf %}
+                            <a class="certificate-label__action" href="{{ certificate.pdf }}" target="_blank" rel="noopener noreferrer">Open the PDF <span aria-hidden="true">&#8599;</span></a>
+                        {% elif certificate.imageFile %}
+                            <a class="certificate-label__action" href="{{ certificate.imageFile }}" target="_blank" rel="noopener noreferrer">Open the image <span aria-hidden="true">&#8599;</span></a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <div class="certificate-archive__stack">
+            <div class="certificate-archive__tabs" role="group" aria-label="Choose a certificate to display">
+                {% for certificate in certificates %}
+                    <button class="certificate-archive__tab" type="button" data-certificate-tab="{{ loop.index0 }}" aria-controls="certificate-label-{{ certificate.number }}" aria-pressed="{{ 'true' if loop.first else 'false' }}" aria-label="Show certificate {{ certificate.number }}: {{ certificate.title }}" disabled>{{ certificate.number }}</button>
+                {% endfor %}
+            </div>
+            <div class="certificate-archive__pile" data-certificate-pile aria-hidden="true">
+                {% for certificate in certificates %}
+                    <figure class="certificate-plate" data-certificate-plate="{{ loop.index0 }}" data-active="{{ 'true' if loop.first else 'false' }}" style="--depth: {{ loop.index0 }}; z-index: {{ total - loop.index0 }}">
+                        <img src="{{ certificate.image }}" alt="" width="{{ certificate.imageWidth }}" height="{{ certificate.imageHeight }}"{% if loop.first %} loading="eager" fetchpriority="high"{% else %} loading="lazy"{% endif %} decoding="async">
+                    </figure>
+                {% endfor %}
+            </div>
+        </div>
+
+        <footer class="certificate-archive__foot">
+            <p>Original documents</p>
+            <p>Select a record · click the front plate to enlarge</p>
+        </footer>
+    </section>
+
+    <section class="certificate-register" aria-labelledby="certificate-register-title">
+        <header class="certificate-register__header">
+            <h2 class="certificate-register__title" id="certificate-register-title">The register</h2>
+            <p class="certificate-register__note">In order of relevance. Select a record to bring its plate forward.</p>
+        </header>
+        <ol class="certificate-register__list" role="list">
+            {% for certificate in certificates %}
+                <li class="certificate-register__row">
+                    <span class="certificate-register__number">{{ certificate.number }}</span>
+                    <div class="certificate-register__identity">
+                        <h3 class="certificate-register__name">
+                            <a class="certificate-register__jump" href="#certificate-archive" data-taxi-ignore data-certificate-jump="{{ loop.index0 }}">{{ certificate.title }}</a>
+                        </h3>
+                        <span class="certificate-register__system">{{ certificate.system }}</span>
+                    </div>
+                    <div class="certificate-register__meta">
+                        <span>{{ certificate.issuer }}</span>
+                        <span>{{ certificate.date }}</span>
+                    </div>
+                    <div class="certificate-register__links">
+                        {% if certificate.verify %}
+                            <a class="certificate-register__link" href="{{ certificate.verify }}" target="_blank" rel="noopener noreferrer">Verify <span aria-hidden="true">&#8599;</span></a>
+                        {% endif %}
+                        {% if certificate.pdf %}
+                            <a class="certificate-register__link" href="{{ certificate.pdf }}" target="_blank" rel="noopener noreferrer">PDF <span aria-hidden="true">&#8599;</span></a>
+                        {% elif certificate.imageFile %}
+                            <a class="certificate-register__link" href="{{ certificate.imageFile }}" target="_blank" rel="noopener noreferrer">Image <span aria-hidden="true">&#8599;</span></a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ol>
+    </section>
+</div>

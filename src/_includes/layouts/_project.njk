@@ -1,0 +1,278 @@
+---
+layout: "layouts/base.njk"
+bodyClass: "project"
+---
+{% set orderedProjects = collections['project'] | sortedByWorkOrder %}
+{% set neighbors = orderedProjects | getProjectNeighbors(page.url) %}
+{% set isHexFill = theme and theme.fill and not ('url(' in theme.fill) %}
+{% set projectStack = content | getProjectStack %}
+{% set toc = content | projectTOC %}
+{% set hasProjectToc = hasToc and toc.length %}
+
+<header class="project-header project-header--{{ heroLayout }} project-header--{{ projectStyle }}" id="top"{% if theme %} style="--project-signal: {{ theme.fill }};{% if theme.accent %} --project-mark-fill: {{ theme.accent }}; --project-dossier-fill: {{ theme.accent }}; --project-dossier-contrast: {{ theme.contrast or '#ffffff' }};{% elif isHexFill %} --project-dossier-fill: {{ theme.fill }}; --project-dossier-contrast: {{ theme.contrast or '#ffffff' }};{% endif %}{% if isHexFill %} --project-fill: {{ theme.fill }}; --project-contrast: {{ theme.contrast or '#ffffff' }};{% endif %}"{% endif %}>
+    <div class="project-header__inner container">
+        <div class="project-header__hero">
+            <div class="project-header__title-wrapper">
+                {% set projectSignalExcluded = title == 'Winning Tracker' or title == 'ServerScribe' or title == 'Instagram Parser' %}
+                {% if not projectSignalExcluded %}
+                <button class="project-header__side-art project-header__side-art--start" type="button" data-project-signal-control data-signal-kind="orbit" aria-label="Orbital diagram. Move pointer to shift the orbits. Activate to change formation.">
+                    <svg viewBox="0 0 128 128" focusable="false" aria-hidden="true">
+                        <circle class="project-header__signal-frame" cx="64" cy="64" r="58"/>
+                        <path class="project-header__signal-axis" d="M64 5v118M5 64h118"/>
+                        <ellipse data-orbit="0" cx="64" cy="64" rx="48" ry="31"/>
+                        <ellipse data-orbit="1" cx="64" cy="64" rx="36" ry="48"/>
+                        <ellipse data-orbit="2" cx="64" cy="64" rx="23" ry="54"/>
+                        <circle class="project-header__signal-core" cx="64" cy="64" r="4"/>
+                        <circle data-orbit-node="0" cx="108" cy="64" r="3.5"/>
+                        <circle data-orbit-node="1" cx="64" cy="20" r="3"/>
+                        <circle data-orbit-node="2" cx="42" cy="64" r="2.5"/>
+                    </svg>
+                    <span class="project-header__signal-caption"><span>Orbital map</span><strong data-signal-mode>Elliptic</strong></span>
+                    <span class="project-header__signal-hint">Move to shift · click to reconfigure</span>
+                </button>
+                <span class="project-header__mark" aria-hidden="true">{% if workOrder < 10 %}0{% endif %}{{ workOrder }}</span>
+                <h1 class="project-header__title">{{ title }}</h1>
+                <button class="project-header__side-art project-header__side-art--end" type="button" data-project-signal-control data-signal-kind="wave" aria-label="Waveform instrument. Move pointer to retune the signal. Activate to change wave shape.">
+                    <svg viewBox="0 0 128 128" focusable="false" aria-hidden="true">
+                        <rect class="project-header__signal-frame" x="7" y="12" width="114" height="104" rx="2"/>
+                        <path class="project-header__signal-axis" d="M15 38h98M15 64h98M15 90h98M38 18v92M64 18v92M90 18v92"/>
+                        <path data-wave-path="0" d="M15 64 C30 24 45 24 64 64 S98 104 113 64"/>
+                        <path data-wave-path="1" d="M15 64 C30 84 45 84 64 64 S98 44 113 64"/>
+                        <path data-wave-path="2" d="M15 64 C30 54 45 54 64 64 S98 74 113 64"/>
+                        <circle class="project-header__signal-core" cx="64" cy="64" r="3"/>
+                    </svg>
+                    <span class="project-header__signal-caption"><span>Waveform</span><strong data-signal-mode>Sine</strong></span>
+                    <span class="project-header__signal-hint">Move to retune · click to reshape</span>
+                </button>
+                {% else %}
+                <span class="project-header__mark" aria-hidden="true">{% if workOrder < 10 %}0{% endif %}{{ workOrder }}</span>
+                <h1 class="project-header__title">{{ title }}</h1>
+                {% endif %}
+            </div>
+
+            <div class="project-header__intro">
+                <p class="project-header__abstract">{{ abstract }}</p>
+                <dl class="project-header__meta">
+                    {% if categories %}
+                    <div class="project-header__meta-group">
+                        <dt>Discipline</dt>
+                        <dd>
+                            <ul class="project-header__topics-list" role="list">
+                                {%- for category in categories -%}
+                                <li>{{ category }}</li>
+                                {%- endfor -%}
+                            </ul>
+                        </dd>
+                    </div>
+                    {% endif %}
+                    <div class="project-header__meta-group">
+                        <dt>Read time</dt>
+                        <dd>{{ content | readTime }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+        {% if cover and heroLayout == 'portrait' %}
+        {% include 'project-cover.njk' %}
+        {% endif %}
+    </div>
+
+    <section class="project-dossier" id="project-record" aria-labelledby="project-record-title">
+        <span class="project-dossier__signal" aria-hidden="true"></span>
+        <div class="project-dossier__inner container">
+            <div class="project-dossier__top">
+                <nav class="project-dossier__project-nav" aria-label="Previous project">
+                    {% if neighbors.previous %}
+                    <a class="project-dossier__project-link" href="{{ neighbors.previous.url }}" aria-label="Previous project: {{ neighbors.previous.data.title }}">
+                        <span aria-hidden="true">&#8592;</span>
+                        <span class="project-dossier__project-link-label">Previous</span>
+                    </a>
+                    {% endif %}
+                </nav>
+                <div class="project-dossier__heading">
+                    <h2 class="project-dossier__title" id="project-record-title">Project record</h2>
+                    <p class="project-dossier__meta">
+                        <span>{% if workOrder < 10 %}0{% endif %}{{ workOrder }} / {{ collections['project'] | length }}</span>
+                    </p>
+                </div>
+                <nav class="project-dossier__project-nav project-dossier__project-nav--next" aria-label="Next project">
+                    {% if neighbors.next %}
+                    <a class="project-dossier__project-link project-dossier__project-link--next" href="{{ neighbors.next.url }}" aria-label="Next project: {{ neighbors.next.data.title }}">
+                        <span class="project-dossier__project-link-label">Next</span>
+                        <span aria-hidden="true">&#8594;</span>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            <dl class="project-dossier__facts">
+                <div class="project-dossier__fact project-dossier__fact--stack">
+                    <dt>Stack</dt>
+                    <dd>
+                        <ul class="project-dossier__stack" role="list">
+                            {% for item in projectStack %}
+                            <li class="project-dossier__chip">
+                                <svg class="project-dossier__chip-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                    <use href="/img/tech/tech-icons.svg#{{ item | getTechIcon }}"></use>
+                                </svg>
+                                <span>{{ item }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </dd>
+                </div>
+                <div class="project-dossier__fact project-dossier__fact--source">
+                    <dt>Source</dt>
+                    <dd>
+                        {% if repo %}
+                        <a class="project-dossier__source" href="{{ repo }}" target="_blank" rel="noreferrer">
+                            <span>{{ repo | replace('https://github.com/', '') }}</span>
+                            <span aria-hidden="true">&#8599;</span>
+                        </a>
+                        {% else %}
+                        <span>Not public</span>
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+            {% if highlights %}
+            <div class="project-dossier__evidence">
+                <p class="project-dossier__evidence-label">Evidence</p>
+                <ul class="project-dossier__highlights" role="list">
+                    {% for highlight in highlights %}
+                    <li class="project-dossier__highlight">
+                        <span class="project-dossier__highlight-value">{{ highlight.value }}</span>
+                        <span class="project-dossier__highlight-label">{{ highlight.label }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if cover and heroLayout != 'portrait' %}
+    <div class="project-header__cover-wrap container">
+        {% include 'project-cover.njk' %}
+    </div>
+    {% endif %}
+</header>
+
+<div class="project-showcase"{% if hasProjectToc %} data-project-showcase{% endif %}>
+    {% if hasProjectToc %}
+    <nav class="project-explorer container" aria-labelledby="project-explorer-title">
+        <div class="project-explorer__intro">
+            <p class="project-explorer__eyebrow">Project file <span aria-hidden="true">/</span> {% if workOrder < 10 %}0{% endif %}{{ workOrder }}</p>
+            <h2 class="project-explorer__title" id="project-explorer-title">Explore the build</h2>
+            <p class="project-explorer__label" id="project-chapters-label">Jump to a chapter <span class="project-explorer__count">{{ toc.length }} sections</span></p>
+            <span class="project-explorer__side-art" aria-hidden="true">
+                <svg viewBox="0 0 32 32" focusable="false"><path d="M16 1v7m0 16v7M1 16h7m16 0h7"/><circle cx="16" cy="16" r="8"/><circle cx="16" cy="16" r="2"/></svg>
+            </span>
+        </div>
+        <ol class="project-chapters" role="list" aria-labelledby="project-chapters-label">
+            {% for entry in toc %}
+                {% if entry.id %}
+                <li class="project-chapters__item">
+                    <a class="project-chapters__link" href="#{{ entry.id }}" data-chapter-link="{{ entry.id }}">
+                        <span class="project-chapters__index">{% if loop.index < 10 %}0{% endif %}{{ loop.index }}</span>
+                        <span class="project-chapters__name">{{ entry.text }}</span>
+                        <span class="project-chapters__mark" aria-hidden="true">&#8594;</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+    {% endif %}
+
+    <div class="project-body container project-body--{{ projectStyle }} project-body--without-rail"{% if theme %} style="--project-signal: {{ theme.fill }}; --project-side-signal: {{ theme.accent or '#2a2722' }};{% if isHexFill %} --project-fill: {{ theme.fill }}; --project-contrast: {{ theme.contrast or '#ffffff' }};{% endif %}"{% endif %}>
+        {% if hasProjectToc %}
+        <aside class="project-body__chapter-signal project-body__chapter-signal--start" aria-hidden="true">
+            <span class="project-body__side-label">Reading</span>
+            <span class="project-body__chapter-index" data-project-side-index>01</span>
+            <span class="project-body__chapter-total">/ {% if toc.length < 10 %}0{% endif %}{{ toc.length }}</span>
+            <span class="project-body__chapter-title" data-project-side-title>{{ toc[0].text }}</span>
+        </aside>
+        <aside class="project-body__chapter-signal project-body__chapter-signal--end" aria-label="Chapter sequence">
+            <span class="project-body__side-label">Sequence</span>
+            <ol class="project-body__chapter-map" role="list">
+                {% for entry in toc %}
+                    {% if entry.id %}
+                    <li data-project-side-step="{{ entry.id }}">
+                        <a class="project-body__chapter-map-link" href="#{{ entry.id }}" data-project-side-link="{{ entry.id }}" aria-label="Chapter {% if loop.index < 10 %}0{% endif %}{{ loop.index }}: {{ entry.text }}">
+                            <span>{% if loop.index < 10 %}0{% endif %}{{ loop.index }}</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </aside>
+        {% endif %}
+        <article class="article-content rendered project-article project-article--{{ projectStyle }}"{% if hasProjectToc %} data-project-stage{% endif %}>
+            {{ content | projectContent | projectRecords | projectFigures(cover) | safe }}
+        </article>
+    </div>
+
+    {% if hasProjectToc %}
+    <nav class="project-chapter-nav container" aria-label="Chapter navigation">
+        <button class="project-chapter-nav__button" type="button" data-chapter-prev>
+            <span class="project-chapter-nav__direction"><span aria-hidden="true">&#8592;</span> Previous</span>
+            <span class="project-chapter-nav__chapter" data-chapter-prev-title></span>
+        </button>
+        <p class="project-chapter-nav__status">
+            <span data-chapter-position>01 / {% if toc.length < 10 %}0{% endif %}{{ toc.length }}</span>
+            <span class="visually-hidden" data-chapter-announce aria-live="polite"></span>
+        </p>
+        <button class="project-chapter-nav__button project-chapter-nav__button--next" type="button" data-chapter-next>
+            <span class="project-chapter-nav__direction">Next <span aria-hidden="true">&#8594;</span></span>
+            <span class="project-chapter-nav__chapter" data-chapter-next-title></span>
+        </button>
+    </nav>
+    {% endif %}
+
+    {% if repo %}
+    <section class="project-source container" aria-labelledby="project-source-title">
+        <p class="project-source__label" id="project-source-title">Source</p>
+        <a class="project-source__link" href="{{ repo }}" target="_blank" rel="noreferrer">
+            <span>View {{ title }} on GitHub</span>
+            <span aria-hidden="true">&#8599;</span>
+        </a>
+    </section>
+    {% endif %}
+</div>
+
+{% if neighbors.previous or neighbors.next %}
+<nav class="project-more container" aria-label="More projects">
+    <div class="project-more__intro">
+        <h2 class="project-more__title">More projects</h2>
+        <a class="project-more__all with-arrow" href="/projects/">All projects</a>
+    </div>
+    <div class="project-more__grid">
+        {% if neighbors.previous %}
+        {% set prev = neighbors.previous.data %}
+        <a class="project-more__card" href="{{ neighbors.previous.url }}" style="--cover-aspect: {{ prev.coverAspect }}; --cover-fit: {{ prev.coverFit }}; --cover-position: {{ prev.coverPosition }};{% if prev.theme and prev.theme.fill %} --project-signal: {{ prev.theme.fill }};{% endif %}">
+            <span class="project-more__label"><span aria-hidden="true">&#8592;</span> Previous project</span>
+            {% if prev.cover %}
+            <span class="project-more__media">
+                <img src="{{ prev.cover }}" alt="" sizes="(min-width: 600px) 42vw, 100vw" loading="lazy">
+            </span>
+            {% endif %}
+            <span class="project-more__name">{{ prev.title }}</span>
+            <span class="project-more__abstract">{{ prev.abstract }}</span>
+        </a>
+        {% endif %}
+        {% if neighbors.next %}
+        {% set next = neighbors.next.data %}
+        <a class="project-more__card project-more__card--next" href="{{ neighbors.next.url }}" style="--cover-aspect: {{ next.coverAspect }}; --cover-fit: {{ next.coverFit }}; --cover-position: {{ next.coverPosition }};{% if next.theme and next.theme.fill %} --project-signal: {{ next.theme.fill }};{% endif %}">
+            <span class="project-more__label">Next project <span aria-hidden="true">&#8594;</span></span>
+            {% if next.cover %}
+            <span class="project-more__media">
+                <img src="{{ next.cover }}" alt="" sizes="(min-width: 600px) 42vw, 100vw" loading="lazy">
+            </span>
+            {% endif %}
+            <span class="project-more__name">{{ next.title }}</span>
+            <span class="project-more__abstract">{{ next.abstract }}</span>
+        </a>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}

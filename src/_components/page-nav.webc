@@ -1,0 +1,28 @@
+<nav class="page-nav">
+    <div class="page-nav__orbit" data-site-navigation>
+        <button class="page-nav__orbit-toggle" type="button" aria-expanded="false" aria-controls="site-navigation-menu" aria-label="Open site navigation">
+            <span class="page-nav__orbit-toggle-mark" aria-hidden="true">✳</span>
+            <span class="page-nav__orbit-toggle-label">Navigate</span>
+        </button>
+        <div class="page-nav__orbit-menu" id="site-navigation-menu" role="dialog" aria-modal="true" aria-label="Site navigation" hidden>
+            <button class="page-nav__orbit-close" type="button" aria-label="Close site navigation">Close <span aria-hidden="true">×</span></button>
+            <div class="page-nav__orbit-wheel">
+                <svg class="page-nav__orbit-chart" viewBox="0 0 320 320" aria-hidden="true" focusable="false"></svg>
+                <nav class="page-nav__orbit-links" aria-label="Choose a page">
+                    <a class="page-nav__orbit-link" href="/about">About</a>
+                    <a class="page-nav__orbit-link" href="/contact">Contact</a>
+                    <a class="page-nav__orbit-link" href="/projects/">Projects</a>
+                    <a class="page-nav__orbit-link" href="/certificates">Certificates</a>
+                    <a class="page-nav__orbit-link" href="/experience">Experience</a>
+                </nav>
+                <a class="page-nav__orbit-center" href="/" aria-label="Home">Home</a>
+            </div>
+        </div>
+    </div>
+    <p class="page-nav__tagline">(the personal site & portfolio of <span>Devathmaj A Kaliyathan</span>)</p>
+    <div class="page-nav__utility">
+        <a :href="backLink || '/'" class="page-nav__back-link">
+            ← <span @text="backLinkText || 'Back to home'"></span>
+        </a>
+    </div>
+</nav>

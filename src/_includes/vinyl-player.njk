@@ -1,0 +1,76 @@
+{% macro icon(name) %}
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+    {% if name == 'previous' %}<path d="M6 5v14M19 5 8 12l11 7Z" fill="currentColor" />
+    {% elif name == 'next' %}<path d="M18 5v14M5 5l11 7-11 7Z" fill="currentColor" />
+    {% elif name == 'volume' %}<path d="M3 9v6h4l5 4V5L7 9Zm13-1a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" />
+    {% elif name == 'play' %}<path d="m8 5 11 7-11 7Z" fill="currentColor" />
+    {% elif name == 'pause' %}<path d="M8 5v14M16 5v14" stroke-width="3" />{% endif %}
+</svg>
+{% endmacro %}
+{% if music.length %}
+<section class="vinyl-player" data-vinyl-player data-phase="idle" aria-label="The listening room">
+    <div class="vinyl-player__collection">
+        <h2 class="vinyl-player__eyebrow" id="record-collection-heading">The Listening Room <span>{{ music.length }}</span></h2>
+        <p class="vinyl-player__note">A few sounds worth staying for.</p>
+        <ol class="vinyl-player__records" aria-labelledby="record-collection-heading" role="list">
+            {% for track in music %}
+            <li>
+                <button class="vinyl-player__record" type="button" data-record="{{ loop.index0 }}" data-id="{{ track.id }}" data-title="{{ track.title | escape }}" data-artist="{{ track.artist | escape }}" style="--label-colour: {{ track.colour }}" aria-pressed="{{ 'true' if loop.first else 'false' }}" disabled>
+                    <span class="vinyl-player__well" aria-hidden="true">
+                        <span class="vinyl-disc">
+                            <span class="vinyl-disc__face">
+                                <span class="vinyl-disc__label"><span class="vinyl-disc__edition">SIDE A · 33⅓ RPM</span><span class="vinyl-disc__title">{{ track.title | escape }}</span><span class="vinyl-disc__artist">{{ track.artist | escape }}</span></span>
+                            </span>
+                        </span>
+                    </span>
+                    <span class="vinyl-player__record-copy"><span class="vinyl-player__record-title">{{ track.title | escape }}</span><span class="vinyl-player__artist">{{ track.artist | escape }}</span><span class="vinyl-player__record-state" data-record-state>{{ 'Selected' if loop.first else 'Select record' }}</span></span>
+                    <span class="vinyl-player__equalizer" aria-hidden="true"><i></i><i></i><i></i></span>
+                    {% for source in track.sources %}<span hidden data-source="{{ source.src }}" data-type="{{ source.type }}"></span>{% endfor %}
+                </button>
+            </li>
+            {% endfor %}
+        </ol>
+        <p class="vinyl-player__collection-foot">Local pressings <span>01 — {{ music.length }}</span></p>
+    </div>
+    <div class="vinyl-player__station">
+        <div class="vinyl-player__deck" aria-hidden="true">
+            <span class="vinyl-player__screw vinyl-player__screw--one"></span><span class="vinyl-player__screw vinyl-player__screw--two"></span><span class="vinyl-player__screw vinyl-player__screw--three"></span><span class="vinyl-player__screw vinyl-player__screw--four"></span>
+            <div class="vinyl-player__platter"><div class="vinyl-player__slot"></div><span class="vinyl-player__spindle"></span></div>
+            <span class="vinyl-player__arm-base"></span>
+            <div class="vinyl-player__tonearm" data-arm="raised">
+                <svg viewBox="0 0 100 300" fill="none" focusable="false">
+                    <path d="M62 36 63 210Q63 229 49 242L27 261" stroke="#080907" stroke-width="13" />
+                    <path d="M62 36 63 210Q63 229 49 242L27 261" stroke="#8c775b" stroke-width="8" />
+                    <path d="M60 36 61 210Q61 227 47 240L25 259" stroke="#dfccaa" stroke-width="2" />
+                    <rect x="48" y="12" width="28" height="39" rx="5" fill="#22231f" stroke="#9a8667" />
+                    <path d="M50 22h24m-24 7h24m-24 7h24" stroke="#665e4c" />
+                    <circle cx="62" cy="64" r="10" fill="#37352e" stroke="#ad9674" />
+                    <path d="m27 245 13 14-21 23-13-14Z" fill="#292a25" stroke="#b6a181" />
+                    <path d="m11 270 9 8-5 5-9-8Z" fill="#c5a474" /><path d="m12 281-3 6" stroke="#ddd1b8" />
+                </svg>
+            </div>
+            <span class="vinyl-player__deck-mark">TT / STEREO<br><span>33⅓ · LONG PLAY</span></span>
+            <span class="vinyl-player__power"></span>
+        </div>
+        <div class="vinyl-player__info">
+            <div class="vinyl-player__now"><h3 data-track-title>{{ music[0].title | escape }}</h3><p class="vinyl-player__artist" data-track-artist>{{ music[0].artist | escape }}</p></div>
+            <span class="vinyl-player__side" aria-hidden="true">SIDE A</span>
+        </div>
+        <div class="vinyl-player__progress">
+            <label class="visually-hidden" for="vinyl-seek">Playback position</label>
+            <input id="vinyl-seek" data-seek type="range" min="0" max="100" value="0" step="0.1" disabled>
+            <div class="vinyl-player__times"><span data-current-time>0:00</span><span data-duration>--:--</span></div>
+        </div>
+        <div class="vinyl-player__controls">
+            <div class="vinyl-player__transport">
+                <button type="button" data-previous aria-label="Previous record" disabled>{{ icon('previous') }}</button>
+                <button class="vinyl-player__play" type="button" data-play aria-label="Play" disabled><span data-play-icon>{{ icon('play') }}</span><span data-pause-icon hidden>{{ icon('pause') }}</span></button>
+                <button type="button" data-next aria-label="Next record" disabled>{{ icon('next') }}</button>
+            </div>
+            <div class="vinyl-player__volume"><button type="button" data-mute aria-label="Mute" aria-pressed="false" disabled>{{ icon('volume') }}</button><label class="visually-hidden" for="vinyl-volume">Volume</label><input id="vinyl-volume" data-volume type="range" min="0" max="1" value="0.7" step="0.01" disabled></div>
+        </div>
+        <p class="vinyl-player__status" data-status role="status" aria-live="polite">Select a record, take a moment.</p>
+        <noscript><p class="vinyl-player__note">Enable JavaScript to use the turntable.</p><audio controls preload="none">{% for source in music[0].sources %}<source src="{{ source.src }}" type="{{ source.type }}">{% endfor %}</audio></noscript>
+    </div>
+</section>
+{% endif %}

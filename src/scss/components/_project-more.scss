@@ -1,0 +1,177 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+.project-more {
+  margin-block: 2rem 5rem;
+
+  &__intro {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-end: 1.5rem;
+    padding-block-end: 1rem;
+    border-block-end: 1px solid $color-border-light;
+  }
+
+  &__title {
+    font-family: $font-serif-display;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1;
+    margin: 0;
+  }
+
+  &__all {
+    font-size: 0.75rem;
+    flex: none;
+    padding-block: 0.35rem;
+    transition: color 0.2s $ease-out-editorial;
+    text-decoration: none;
+    text-transform: uppercase;
+    color: $color-text-mid;
+
+    &:hover {
+      color: $color-text;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+
+    @include screen(sm) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &__card {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    align-content: start;
+    padding: 1.25rem 1rem 1rem;
+    transition: transform 160ms $ease-out-editorial, border-color 0.2s $ease-out-editorial;
+    text-decoration: none;
+    border: 2px solid $color-border-light;
+    border-radius: $bdrs;
+
+    @include screen(sm) {
+      padding: 1.5rem 1.25rem 1.25rem;
+    }
+
+    &::before {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 0.4rem;
+      content: '';
+      background-color: var(--project-fill, #{$color-border-light});
+      background-image: var(--project-signal, none);
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        border-color: $color-border-mid;
+
+        .project-more__media img {
+          transform: scale(1.02);
+        }
+
+        .project-more__name {
+          background-size: 100% 1px;
+        }
+      }
+    }
+
+    &:active {
+      transform: scale(0.995);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+
+      &:active {
+        transform: none;
+      }
+    }
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    display: flex;
+    gap: 0.5ch;
+    margin-block-end: 1rem;
+    text-transform: uppercase;
+    color: $color-text-mid;
+  }
+
+  &__card--next &__label {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  &__media {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: var(--cover-aspect, 16 / 9);
+    margin-block-end: 1.25rem;
+    border: 1px solid $color-border-light;
+    border-radius: calc(#{$bdrs} - 0.25rem);
+    background-color: $color-border-light;
+
+    picture {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.4s $ease-out-editorial;
+      object-fit: var(--cover-fit, cover);
+      object-position: var(--cover-position, top center);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      img {
+        transition: none;
+      }
+    }
+  }
+
+  &__name {
+    font-family: $font-serif-display;
+    font-size: 2rem;
+    line-height: 0.9;
+    margin-block-end: 0.5rem;
+    transition: background-size 0.2s $ease-out-editorial;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 calc(100% - 1px);
+    background-size: 0% 1px;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  &__abstract {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    overflow: hidden;
+    color: $color-text-mid;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}

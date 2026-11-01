@@ -1,0 +1,10 @@
+<figure class="project-header__cover" style="--cover-aspect: {{ coverAspect }}; --cover-fit: {{ coverFit }}; --cover-position: {{ coverPosition }};">
+    <div class="project-header__cover-frame">
+        <a href="{{ cover }}" target="_blank" rel="noopener noreferrer" aria-label="Open image: {{ coverAlt or title }}">
+            <img src="{{ cover }}" alt="{{ coverAlt or title }}" sizes="(min-width: 1000px) 42vw, 100vw" loading="eager" fetchpriority="high">
+        </a>
+    </div>
+    <figcaption class="project-header__cover-caption">
+        <span>{{ coverAlt or title }}</span>
+    </figcaption>
+</figure>

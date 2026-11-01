@@ -1,0 +1,71 @@
+<svg class="experience-strip__svg" viewBox="0 0 900 120" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true" focusable="false">
+    <path class="experience-strip__rail" d="M0 60H900" stroke="currentColor" stroke-width="1" stroke-dasharray="1 9" opacity="0.35"/>
+
+    {% if job.visual.kind == 'distribution' %}
+        <g class="experience-strip__diagram" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M42 60H858" stroke-width="1.5" opacity="0.35"/>
+            <path d="M42 60H858" stroke-width="2" stroke-dasharray="1 135" class="experience-strip__signal"/>
+
+            {% for i in range(0, 4) %}
+                {% set x = 120 + i * 190 %}
+                <g transform="translate({{ x }} 60)">
+                    <circle r="23" fill="var(--color-background)" stroke-width="1.5"/>
+                    <circle r="16" stroke-width="0.7" opacity="0.45"/>
+                    {% if i == 0 %}
+                        <path d="M-7 4V-5A7 7 0 0 1 7-5V4M-10 4H10M-5 8H5" stroke-width="1.5"/>
+                        <circle cy="-5" r="2.5" fill="var(--color-background)" stroke-width="1.2"/>
+                    {% elif i == 1 %}
+                        <rect x="-8" y="-10" width="16" height="20" rx="1.5" fill="var(--color-background)" stroke-width="1.5"/>
+                        <path d="M-4-5H4M-4 0H4M-4 5H1" stroke-width="1.1"/>
+                    {% elif i == 2 %}
+                        <path d="M-10-4L0-10L10-4L0 2Z" fill="var(--color-background)" stroke-width="1.5"/>
+                        <path d="M-10-4V5L0 11L10 5V-4M0 2V11" stroke-width="1.2"/>
+                    {% else %}
+                        <path d="M-9-2L-2 5L10-8" stroke-width="2"/>
+                        <circle r="11" stroke-width="1.2"/>
+                    {% endif %}
+                    <circle r="27" class="experience-strip__pulse" stroke-width="1"/>
+                </g>
+                {% if i < 3 %}
+                    <path d="M147 {{ 60 }}H273M267 55L273 60L267 65" stroke-width="1.2"/>
+                {% endif %}
+            {% endfor %}
+            <path d="M42 39H858M42 81H858" stroke-width="0.7" opacity="0.3"/>
+            <circle cx="42" cy="60" r="3" fill="currentColor" stroke="none"/>
+            <circle cx="858" cy="60" r="3" fill="currentColor" stroke="none"/>
+        </g>
+    {% else %}
+        <g class="experience-strip__diagram" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M42 60H858" stroke-width="1.5" opacity="0.35"/>
+            <path d="M42 60H858" stroke-width="2" stroke-dasharray="1 135" class="experience-strip__signal"/>
+
+            {% for i in range(0, 4) %}
+                {% set x = 120 + i * 190 %}
+                <g transform="translate({{ x }} 60)">
+                    <circle r="23" fill="var(--color-background)" stroke-width="1.5"/>
+                    <circle r="16" stroke-width="0.7" opacity="0.45"/>
+                    {% if i == 0 %}
+                        <rect x="-10" y="-8" width="20" height="15" rx="2" fill="var(--color-background)" stroke-width="1.5"/>
+                        <path d="M-6-3L-2 0L-6 3M1 3H6M-6 11H6" stroke-width="1.2"/>
+                    {% elif i == 1 %}
+                        <path d="M0-12L10-8V0C10 7 5 11 0 13C-5 11-10 7-10 0V-8Z" fill="var(--color-background)" stroke-width="1.5"/>
+                        <path d="M-5 0L-1 4L6-4" stroke-width="1.5"/>
+                    {% elif i == 2 %}
+                        <path d="M-9 5H9M-7 5V-7H7V5M-4-2H4M-4 2H4" fill="var(--color-background)" stroke-width="1.5"/>
+                        <path d="M-12 9H12" stroke-width="1.2"/>
+                    {% else %}
+                        <path d="M-9 6C-14 6-14-2-9-3C-9-10 2-12 4-6C11-7 14 2 8 5H-9Z" fill="var(--color-background)" stroke-width="1.5"/>
+                        <path d="M0-3V5M-3 2L0 5L3 2" stroke-width="1.2"/>
+                    {% endif %}
+                    <circle r="27" class="experience-strip__pulse" stroke-width="1"/>
+                </g>
+                {% if i < 3 %}
+                    <path d="M147 60H273M267 55L273 60L267 65" stroke-width="1.2"/>
+                {% endif %}
+            {% endfor %}
+            <path d="M42 39H858M42 81H858" stroke-width="0.7" opacity="0.3"/>
+            <circle cx="42" cy="60" r="3" fill="currentColor" stroke="none"/>
+            <circle cx="858" cy="60" r="3" fill="currentColor" stroke="none"/>
+        </g>
+    {% endif %}
+</svg>

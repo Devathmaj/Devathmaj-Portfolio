@@ -1,0 +1,24 @@
+<div class="home-letter themed">
+    <div class="home-letter__stage">
+        <div class="home-letter__images" data-image-shuffle data-shuffle-fit data-shuffle-interval="10000">
+            <img data-shuffle-image class="home-letter__img is-active" src="/img/art/creation-of-adam.jpg"
+                alt="The Creation of Adam by Michelangelo"
+                sizes="(min-width: 1024px) 72rem, 90vw" loading="lazy" />
+            <img data-shuffle-image class="home-letter__img" src="/img/art/starry-night.jpg"
+                alt="The Starry Night by Vincent van Gogh"
+                sizes="(min-width: 1024px) 72rem, 90vw" loading="lazy" />
+            <img data-shuffle-image class="home-letter__img" src="/img/art/great-wave.jpg"
+                alt="The Great Wave off Kanagawa by Katsushika Hokusai"
+                sizes="(min-width: 1024px) 72rem, 90vw" loading="lazy" />
+            <img data-shuffle-image class="home-letter__img" src="/img/art/the-last-supper.jpg"
+                alt="The Last Supper by Leonardo da Vinci"
+                sizes="(min-width: 1024px) 72rem, 90vw" loading="lazy" />
+            <img data-shuffle-image class="home-letter__img" src="/img/art/the-kiss.jpg"
+                alt="The Kiss by Gustav Klimt"
+                sizes="(min-width: 1024px) 72rem, 90vw" loading="lazy" />
+            <img data-shuffle-image class="home-letter__img" src="/img/art/girl-with-a-pearl-earring.jpg"
+                alt="Girl with a Pearl Earring by Johannes Vermeer"
+                sizes="(min-width: 1024px) 72rem, 90vw" loading="lazy" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,42 @@
+{
+  "baseTitle": "Devathmaj A Kaliyathan",
+  "nav": [
+    {
+      "title": "SELF",
+      "footerClass": "footer__section--meta",
+      "links": [
+        {
+          "text": "About",
+          "description": "Backend reliability, observability and infrastructure",
+          "url": "/about"
+        },
+        {
+          "text": "Contact",
+          "description": "Get in touch about roles and projects",
+          "url": "/contact"
+        }
+      ]
+    },
+    {
+      "title": "CRAFT",
+      "footerClass": "footer__section--garden",
+      "links": [
+        {
+          "text": "Projects",
+          "description": "Production systems and selected projects",
+          "url": "/projects/"
+        },
+        {
+          "text": "Certificates",
+          "description": "Credentials and completed courses",
+          "url": "/certificates"
+        },
+        {
+          "text": "Experience",
+          "description": "Professional history and selected work",
+          "url": "/experience"
+        }
+      ]
+    }
+  ]
+}

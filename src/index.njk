@@ -1,0 +1,77 @@
+---
+bodyClass: "home"
+backLink: '/'
+backLinkText: ''
+footerLinks: []
+---
+{% from './_includes/project-block.njk' import projectBlock %}
+
+{% renderTemplate 'webc', {site: site, profile: profile} %}
+<home-hero :@site="site"></home-hero>
+<home-about :@profile="profile"></home-about>
+{% endrenderTemplate %}
+<section class="home-projects">
+    <h2 class="home-projects__title">Projects</h2>
+    <ul class="project-list" role="list">
+        {% for project in collections['project'] | sortedByPublishDate %}
+            {% if project.data.isFeatured %}
+                  <li class="project-list__item project-list__item--{{ project.data.prominence or 'low' }}">{{ projectBlock(project) }}</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <a class="home-projects__link" href="/projects/">
+        <span class="home-projects__label">View all projects</span>
+        <span class="home-projects__arrow" aria-hidden="true">→</span>
+    </a>
+</section>
+<section class="home-experience themed dark" id="experience">
+    <h2 class="home-experience__title">Experience.</h2>
+    <ul class="experience-rows" role="list">
+        {% for job in experience %}
+        <li>
+            <article class="experience-row">
+                <div class="experience-row__inner">
+                    <div class="experience-row__echoes" role="presentation" inert>
+                        <div class="experience-row__echoes-track">
+                            <span class="experience-row__echo" aria-hidden="true">{{ job.company }}</span>
+                            <span class="experience-row__echo" aria-hidden="true">{{ job.company }}</span>
+                            <span class="experience-row__echo" aria-hidden="true">{{ job.company }}</span>
+                        </div>
+                    </div>
+                    <h1 class="experience-row__title">
+                        <div class="experience-row__title-text">
+                            <span class="experience-row__half">{{ job.company.slice(0, job.titleSplitIndex) }}</span><span
+                                class="experience-row__title-divider{% if not job.titleDivider %} experience-row__title-divider--line{% endif %}">{% if job.titleDivider %}{{ job.titleDivider }}{% endif %}</span><span
+                                class="experience-row__half">{% if job.titleDivider %}{{ job.company.slice(job.titleSplitIndex + job.titleDividerLength) }}{% else %}{{ job.company.slice(job.titleSplitIndex).trimStart() }}{% endif %}</span>
+                        </div>
+                        <a class="experience-row__link" href="/experience/{{ job.slug }}/">
+                            <span class="visually-hidden">Read the {{ job.name }} experience</span>
+                        </a>
+                    </h1>
+                    <div class="experience-row__echoes experience-row__echoes--after" role="presentation" inert>
+                        <div class="experience-row__echoes-track">
+                            <span class="experience-row__echo" aria-hidden="true">{{ job.company }}</span>
+                            <span class="experience-row__echo" aria-hidden="true">{{ job.company }}</span>
+                            <span class="experience-row__echo" aria-hidden="true">{{ job.company }}</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+<div class="home-listening">
+    <header class="home-listening__intro">
+        <h2 class="home-listening__title">A little room for something beautiful.</h2>
+    </header>
+    <div class="home-listening__pair">
+        {% renderTemplate 'webc' %}
+        <home-letter></home-letter>
+        {% endrenderTemplate %}
+        {% include 'vinyl-player.njk' %}
+    </div>
+</div>
+<div class="home-letter__horizon home-listening__horizon">
+    <img class="footer-border" src="/img/decor/footer-border.png" alt="" eleventy:formats="webp,png">
+</div>

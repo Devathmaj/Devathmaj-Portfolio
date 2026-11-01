@@ -1,0 +1,12 @@
+{% from 'graphics/record-motifs.njk' import sprig, envelope %}
+<svg viewBox="0 0 440 210" fill="none" aria-hidden="true" focusable="false">
+    <g stroke="currentColor" stroke-width="1.3">
+        <path d="M12 142H69C106 142 78 46 129 46H155M278 155H310C351 155 321 81 361 81H419"/>
+        <path d="M12 150H69C117 150 89 54 129 54H155M278 163H310C362 163 332 89 361 89H419"/>
+        <path d="M12 130H32V161H12Z M16 135H21M16 141H21M16 147H21M16 153H21M407 70H428V101H407Z M416 77H423M416 83H423M416 89H423M416 95H423"/>
+    </g>
+    <g transform="translate(65 15) rotate(-17)">{{ sprig() }}</g>
+    {{ envelope(143, 32) }}
+    <g transform="translate(377 193) rotate(176) scale(.8)">{{ sprig() }}</g>
+    <g stroke="currentColor" stroke-width=".7" opacity=".45"><path d="M173 186H272M193 193H252M321 28H339M330 19V37M45 56H61M53 48V64"/></g>
+</svg>

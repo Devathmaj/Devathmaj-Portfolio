@@ -1,0 +1,45 @@
+node_modules
+_site
+*.DS_Store
+
+# Local-only backups, restored builds and regenerable state
+/backups/
+
+# Local Cloudflare/Wrangler state
+.wrangler
+.dev.vars
+.cache
+.env
+.env.*
+!.env.example
+
+# Editor and agent tooling
+/.vscode/
+/.idea/
+*.code-workspace
+*.iml
+/.prettierignore
+/.stylelintrc.json
+/opencode.json
+/skills-lock.json
+/skills/
+/.claude/
+/.opencode/
+/.agents/
+/.codex/
+/.cursor/
+/.windsurf/
+/AGENTS.md
+/CLAUDE.md
+/.history/
+*.swp
+*.swo
+*~
+Thumbs.db
+Desktop.ini
+
+# Local design and planning notes
+/DESIGN.md
+/PRODUCT.md
+/TO-DO.md
+/.impeccable/

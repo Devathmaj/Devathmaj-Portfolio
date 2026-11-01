@@ -1,0 +1,277 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+.links-page {
+  margin-block-end: 6rem;
+
+  @include screen(sm) {
+    position: relative;
+  }
+  @include screen(magazine) {
+    overflow: hidden;
+    max-width: 100vw;
+    margin-block-start: -10rem;
+    padding-block: 10rem;
+  }
+
+  &__description {
+    margin-block-end: 3rem;
+
+    &--positioned {
+      text-align: center;
+
+      @include screen(sm) {
+        position: absolute;
+        inset-inline: 0;
+        top: 50%;
+        max-width: 23ch;
+        margin-inline: auto;
+        transform: translateY(-50%);
+
+        @media (prefers-reduced-motion: reduce) {
+          position: relative;
+          max-width: unset;
+          margin-block-start: 2rem;
+          margin-block-end: 0;
+          margin-inline-start: 1rem;
+          text-align: left;
+        }
+      }
+      @include screen(658px) {
+        max-width: 30ch;
+      }
+      @include screen(lg) {
+        max-width: fit-content;
+      }
+      @media (max-width: 1100px), (max-height: 700px) {
+        position: relative;
+        inset-inline: auto;
+        top: auto;
+        max-width: 30ch;
+        margin-inline: auto;
+        transform: none;
+      }
+    }
+  }
+
+  &__hidden-note {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6ch;
+    margin-block: 0 1.5rem;
+    margin-inline: 1rem;
+    color: $color-text-mid;
+    font-family: $font-serif;
+    font-size: clamp(1rem, 0.94rem + 0.3vw, 1.1875rem);
+    line-height: 1.4;
+    text-wrap: pretty;
+
+    em {
+      color: $color-text;
+      font-style: italic;
+    }
+
+    @include screen(lg) {
+      margin-block-end: 2rem;
+    }
+  }
+
+  &__hidden-mark {
+    flex: none;
+    align-self: center;
+    color: $color-text-mid;
+    font-family: $font-sans;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+
+  &__title {
+    text-transform: uppercase;
+  }
+
+  &__subtitle {
+    margin-block-end: 3em;
+    text-transform: uppercase;
+    color: $color-text-mid;
+  }
+
+  &__warning {
+    font-family: $font-serif;
+    font-style: italic;
+  }
+
+  &__action {
+    font-family: $font-sans;
+    font-style: italic;
+    display: inline-block;
+    width: 100%;
+    margin-inline: auto;
+    padding: 0;
+    cursor: pointer;
+    text-transform: uppercase;
+    color: $color-text-mid;
+    border: none;
+    background: none;
+
+    @include screen(sm) {
+      width: fit-content;
+      margin-inline: 1rem;
+    }
+
+    span {
+      transition: background-size 0.2s $ease-out-editorial;
+      background-image: linear-gradient(currentColor, currentColor);
+      background-repeat: no-repeat;
+      background-position: 0 calc(100% - 1px);
+      background-size: 0% 1px;
+      @media (prefers-reduced-motion: reduce) {
+        transition-duration: 0s;
+      }
+    }
+
+    &:hover {
+      color: $color-text;
+
+      span {
+        background-size: 100% 1px;
+      }
+    }
+  }
+
+  &__spinner {
+    position: absolute;
+    right: 1rem;
+    bottom: 100px;
+    width: 4rem;
+    font-size: 2rem;
+    aspect-ratio: 1;
+    padding: 0;
+    cursor: pointer;
+    border: 1px solid var(--color-border-light);
+    border-radius: 100%;
+    background-color: transparent;
+    color: inherit;
+    user-select: none;
+
+    @media (pointer: fine) {
+      display: none;
+    }
+  }
+}
+
+.links-list-wrapper {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+
+  @include screen(magazine) {
+    display: contents;
+  }
+}
+
+.links-list {
+  line-height: 1.5;
+  margin-inline-start: 1rem;
+
+  &--radial {
+    line-height: 1;
+    position: relative;
+    width: 150%;
+    max-height: 90vh;
+    aspect-ratio: 1;
+    margin-inline-start: 0;
+    padding: 0;
+    list-style: none;
+    transform: translateX(calc(-50% + 20vw)) rotate(var(--main-rotation));
+
+    @include screen(sm) {
+      display: block;
+      overflow: hidden;
+      width: 100%;
+      max-height: unset;
+      margin-block: 0;
+      margin-inline: auto;
+      padding: 1rem;
+      transform: rotate(var(--main-rotation));
+      border-radius: 100%;
+    }
+    @include screen(lg) {
+      // TODO kind of a magic number,
+      // might need checking as new links are added
+      max-width: 82ch;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      line-height: 1.5;
+      position: relative;
+      overflow: visible;
+      margin-inline: 2rem;
+      padding: initial;
+      list-style-type: initial;
+      transform: none;
+      border-radius: 0;
+    }
+
+    li {
+      position: absolute;
+      inset: 50%;
+      width: max-content;
+      height: 1lh;
+      transform: rotate(calc(var(--rotation) * 1deg))
+        translateX(calc(var(--x) * 1px));
+      transform-origin: 0 0;
+
+      @media (prefers-reduced-motion: reduce) {
+        position: relative;
+        inset: unset;
+        margin: initial;
+        padding: initial;
+        transform: none;
+      }
+    }
+  }
+
+  a {
+    transition: all 0.1s ease-in;
+
+    &:hover,
+    &:focus {
+      color: hsl(240deg 100% 50%);
+    }
+  }
+}
+
+.links-page-background {
+  position: absolute;
+  z-index: -1;
+  inset-inline: auto;
+  top: 50%;
+  width: 100%;
+  height: 100vh;
+  transform: translateY(-50%) translateX(calc(-50% + 20vw));
+  color: $color-border-light;
+
+  @include screen(sm) {
+    inset-inline: 0;
+    max-width: calc(100% - 8rem);
+    margin-inline: auto;
+    transform: translateY(-50%) rotate(calc(var(--main-rotation, 0deg) * 0.1));
+    transform-origin: center;
+
+    @media (prefers-reduced-motion: reduce) {
+      transform: translateY(-50%);
+    }
+  }
+  @include screen(magazine) {
+    max-width: 1000px;
+    height: auto;
+    max-height: 1000px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transform: translateY(-50%);
+  }
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}

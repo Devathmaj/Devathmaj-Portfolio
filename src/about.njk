@@ -1,0 +1,274 @@
+---js
+{
+    tags: ['page'],
+    title: 'About',
+    eleventyComputed: {
+        footerLinks: (data) => [
+            ...data.footerLinks,
+            { name: "About", url: "/about" },
+        ],
+    },
+}
+---
+<header class="page-header page-header--about">
+    <div class="page-header__inner">
+        <h1 class="page-header__title page-header__title--about-adjust">About</h1>
+        <p class="about-heading-note">A little about the person<br>behind the systems.</p>
+        <a class="about-heading-link" href="/resume/Devathmaj_Resume.pdf" data-taxi-ignore>Read my resume <span aria-hidden="true">↗</span></a>
+    </div>
+</header>
+
+<div class="about-page">
+    <section class="about-profile" aria-labelledby="about-profile-title">
+        <figure class="about-profile__portrait">
+            <img src="/img/brand/portrait.jpg" alt="Portrait of Devathmaj A Kaliyathan"
+                loading="eager" fetchpriority="high" sizes="(min-width: 1000px) 32vw, (min-width: 600px) 42vw, 92vw">
+            <figcaption>Devathmaj A Kaliyathan, Kerala, India.</figcaption>
+            <div class="about-profile__seal" aria-hidden="true">{% include 'graphics/about-emblem.njk' %}</div>
+        </figure>
+
+        <div class="about-profile__copy">
+            <h2 class="about-profile__title" id="about-profile-title">I'm Devathmaj.<br><em>I build for<br>the long run.</em></h2>
+            <p class="about-profile__intro">Software engineer, working from database to browser.</p>
+            <p class="about-profile__lede">I'm a computer science graduate (2026) based in Kerala, India. I work across the stack: designing schemas and REST APIs, building the interfaces that sit on top of them and shipping the result in containers on Azure.</p>
+            <nav class="about-profile__links" aria-label="About Devathmaj">
+                <a class="about-profile__link about-profile__link--resume" href="mailto:devathmaj@gmail.com">Let's talk <span aria-hidden="true">↗</span></a>
+                <a class="about-profile__link" href="https://github.com/Devathmaj">GitHub <span aria-hidden="true">↗</span></a>
+                <a class="about-profile__link" href="https://linkedin.com/in/devathmaj">LinkedIn <span aria-hidden="true">↗</span></a>
+            </nav>
+        </div>
+        <div class="about-profile__story">
+            <p class="about-profile__aside">The work is technical.<br><em>The intention is simple:<br>make it dependable.</em></p>
+            <div>
+             <p>Most of my work has been about making operational systems trustworthy. At Kannur Vision I built a full-stack distribution management system with audit logging and role-based access across eight hierarchical roles. At Kerala Vision Broadband I built a network backup platform that automated device backups, configuration management and log comparison, cutting manual network administration effort by 80%.</p>
+            <p>I care about observability, reliability, platform and delivery: systems that can be measured, operated and kept healthy under real load. My projects have included hybrid semantic search with pgvector, encrypted real-time chat over WebSockets and Redis, AI extraction pipelines with Groq and Gemini and Azure deployments with Key Vault and Content Safety.</p>
+            <p>My background is a B.Tech in Computer Science and Engineering (2022–2026) and I'm looking for a team where I can work on backend, infrastructure, reliability or platform problems.</p>
+
+            </div>
+        </div>
+
+        <dl class="about-profile__facts">
+            {% for fact in about.facts %}
+                <div class="about-profile__fact">
+                    <dt>{{ fact.label }}</dt>
+                    <dd>{{ fact.value }}</dd>
+                </div>
+            {% endfor %}
+        </dl>
+    </section>
+
+    <nav class="about-index" aria-label="On this page">
+        <span>Explore</span>
+        <a href="#approach" data-taxi-ignore>How I build</a>
+        <a href="#experience" data-taxi-ignore>Experience</a>
+        <a href="#projects" data-taxi-ignore>Selected projects</a>
+        <a href="#toolkit" data-taxi-ignore>Toolkit</a>
+        <a href="#education" data-taxi-ignore>Education</a>
+    </nav>
+
+    <section class="about-layers" id="approach" aria-labelledby="about-layers-title">
+        <div class="about-layers__heading">
+            <h2 id="about-layers-title">Good systems.<br><em>Every layer considered.</em></h2>
+            <p>From the data underneath to the experience on top. Explore the parts of the stack I work with.</p>
+        </div>
+        <div class="about-layers__drawing" data-active-layer="0" aria-hidden="true">
+            {% include 'graphics/about-layers.njk' %}
+            <span>Database → browser → production</span>
+        </div>
+        <div class="about-layers__explorer">
+            <div class="about-layers__tabs" data-layer-tabs aria-label="Explore the stack" hidden>
+                {% for layer in about.layers %}
+                    <button type="button" id="layer-tab-{{ loop.index0 }}" data-layer-tab="{{ loop.index0 }}" aria-controls="layer-panel-{{ loop.index0 }}">
+                        <svg viewBox="0 0 32 32" aria-hidden="true"><use href="/img/about/fieldbook-icons.svg#{{ layer.icon }}"></use></svg>
+                        {{ layer.title }}
+                    </button>
+                {% endfor %}
+            </div>
+            {% for layer in about.layers %}
+                <div class="about-layers__panel" id="layer-panel-{{ loop.index0 }}" data-layer-panel="{{ loop.index0 }}" aria-labelledby="layer-tab-{{ loop.index0 }}">
+                    <h3>{{ layer.heading }}</h3>
+                    <p>{{ layer.description }}</p>
+                    <span class="about-layers__tools">{{ layer.tools }}</span>
+                    <a href="{{ layer.href }}">{{ layer.link }} <span aria-hidden="true">↗</span></a>
+                </div>
+            {% endfor %}
+            <p class="about-layers__hint" data-layer-hint hidden>Select a layer to look a little closer.</p>
+        </div>
+    </section>
+
+    <section class="about-experience" id="experience" aria-labelledby="about-experience-title">
+        <a class="about-experience__link" href="/experience/kannur-vision/">
+            <h2 class="about-experience__title" id="about-experience-title">Experience</h2>
+            <div class="about-experience__copy">
+                <p class="about-experience__line">The work behind<br><em>the way I work.</em></p>
+                <span class="about-experience__action">Explore my experience</span>
+            </div>
+            <span class="about-experience__arrow" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 51 51 13M13 13h38v38"/></svg>
+            </span>
+        </a>
+    </section>
+
+    <section class="about-section" id="projects" aria-labelledby="about-projects-title">
+        <div class="about-section__header">
+            <h2 class="about-section__title" id="about-projects-title">Selected projects</h2>
+            <p class="about-section__note">Two projects that show the kind of systems I like to build.</p>
+        </div>
+        <div class="about-section__body">
+            <div class="about-projects">
+                {% for project in about.projects %}
+                    <article class="about-project">
+                        <a class="about-project__media" href="{{ project.href }}" aria-label="Explore {{ project.title }}">
+                            <img src="{{ project.image }}" alt="{{ project.imageAlt }}"
+                                sizes="(min-width: 1000px) 32vw, (min-width: 600px) 44vw, 92vw" loading="lazy" decoding="async">
+                        </a>
+                        <div class="about-project__body">
+                            <h3 class="about-project__title"><a href="{{ project.href }}">{{ project.title }}</a></h3>
+                            <p class="about-project__subtitle">{{ project.subtitle }}</p>
+                            <p class="about-project__description">{{ project.description }}</p>
+                            <ul class="about-project__stack" role="list">
+                                {% for item in project.stack %}
+                                    <li class="about-project__chip">
+                                        <svg class="about-project__chip-icon" aria-hidden="true" focusable="false"><use href="/img/tech/tech-icons.svg#{{ item.icon }}"></use></svg>
+                                        <span>{{ item.name }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <a class="about-project__link" href="{{ project.href }}">Read the project <span aria-hidden="true">→</span></a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+            <a class="about-projects__all" href="/projects/">
+                <span>Explore all projects</span>
+                <span class="about-projects__all-note">More systems, tools & experiments</span>
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 16h22M18 7l9 9-9 9"/></svg>
+            </a>
+        </div>
+    </section>
+
+    <section class="about-section" id="toolkit" aria-labelledby="about-toolkit-title">
+        <div class="about-section__header">
+            <h2 class="about-section__title" id="about-toolkit-title">Toolkit</h2>
+            <p class="about-section__note">The tools behind the work and the part each one plays. Open a group, then choose a tool to look closer.</p>
+        </div>
+        <div class="about-section__body">
+            <div class="about-toolkit">
+                {% for group in about.toolkit %}
+                    {% set groupIndex = loop.index0 %}
+                    <details class="about-toolkit__group" name="about-toolkit" {% if loop.first %}open{% endif %}>
+                        <summary class="about-toolkit__summary">
+                            <span>
+                                <span class="about-toolkit__title">{{ group.title }}</span>
+                                <span class="about-toolkit__preview">{{ group.preview }}</span>
+                            </span>
+                            <span class="about-toolkit__marks" aria-hidden="true">
+                                {% for tool in group.featured %}
+                                    <svg focusable="false"><use href="/img/tech/tech-icons.svg#{{ tool.icon }}"></use></svg>
+                                {% endfor %}
+                            </span>
+                            <svg class="about-toolkit__toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14"/><path class="about-toolkit__plus" d="M12 5v14"/></svg>
+                        </summary>
+                        <div class="about-toolkit__detail">
+                            <p class="about-toolkit__description">{{ group.description }}</p>
+                            <div class="about-toolkit__map" data-tool-map aria-label="Tools for {{ group.title }}" hidden>
+                                {% for tool in group.featured %}
+                                    <button class="about-toolkit__tool" type="button" id="tool-{{ groupIndex }}-{{ loop.index0 }}" data-tool-tab aria-controls="tool-note-{{ groupIndex }}-{{ loop.index0 }}">
+                                        <span class="about-toolkit__tool-mark"><svg aria-hidden="true" focusable="false"><use href="/img/tech/tech-icons.svg#{{ tool.icon }}"></use></svg></span>
+                                        <span class="about-toolkit__tool-name">{{ tool.name }}</span>
+                                        <span class="about-toolkit__tool-role">{{ tool.role }}</span>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                            <div class="about-toolkit__notes">
+                                {% for tool in group.featured %}
+                                    <div class="about-toolkit__note" id="tool-note-{{ groupIndex }}-{{ loop.index0 }}" data-tool-note>
+                                        <h3 class="about-toolkit__note-title"><span class="about-toolkit__note-tool">{{ tool.name }}: </span>{{ tool.heading }}</h3>
+                                        <p>{{ tool.description }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="about-toolkit__supporting">
+                                <span>Also in the mix</span>
+                                <ul class="about-toolkit__list" role="list">
+                                    {% for tool in group.tools %}<li>{{ tool }}</li>{% endfor %}
+                                </ul>
+                            </div>
+                            <a class="about-toolkit__example" href="{{ group.href }}">{{ group.example }} <span aria-hidden="true">↗</span></a>
+                        </div>
+                    </details>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="about-section" id="education" aria-labelledby="about-education-title">
+        <div class="about-section__header">
+            <h2 class="about-section__title" id="about-education-title">Education & credentials</h2>
+            <p class="about-section__note">The degree behind the work and the credentials earned alongside it.</p>
+        </div>
+        <div class="about-section__body">
+            <div class="about-education">
+                <div class="about-education__school">
+                    <h3 class="about-education__name">St. Thomas College of Engineering & Technology, Mattanur</h3>
+                    <p class="about-education__degree">B.Tech in Computer Science</p>
+                </div>
+                <dl class="about-education__meta">
+                    <div class="about-education__fact">
+                        <dt>Period</dt>
+                        <dd>Oct 2022 – Apr 2026</dd>
+                    </div>
+                    <div class="about-education__fact">
+                        <dt>CGPA</dt>
+                        <dd>8.18</dd>
+                    </div>
+                    <div class="about-education__fact">
+                        <dt>Location</dt>
+                        <dd>Kerala, India</dd>
+                    </div>
+                </dl>
+                <p class="about-education__coursework"><span>Coursework</span> Data Structures & Algorithms, Operating Systems, Database Management Systems, Computer Networks, Management of Software Systems, OOP.</p>
+            </div>
+
+            <div class="about-credentials">
+                <div class="about-credentials__header">
+                    <h3 class="about-credentials__title">Selected certifications</h3>
+                </div>
+                <ul class="about-credentials__list" role="list">
+                    {% for cert in certificates %}
+                        {% if cert.id in about.featuredCredentialIds %}
+                        <li class="about-credentials__item">
+                            <svg class="about-credentials__icon" aria-hidden="true" focusable="false"><use href="/img/tech/tech-icons.svg#{{ about.credentialIcons[cert.id] }}"></use></svg>
+                            <div class="about-credentials__identity">
+                                <span class="about-credentials__name">{{ cert.title }}</span>
+                                <span class="about-credentials__meta">{{ cert.issuer }} · {{ cert.date }}</span>
+                            </div>
+                            <a class="about-credentials__link" href="{{ cert.pdf }}" target="_blank" rel="noopener noreferrer">PDF <span aria-hidden="true">↗</span></a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                <a class="about-credentials__all" href="/certificates/">
+                    <span>
+                        <span class="about-credentials__archive-title">The full credential collection.</span>
+                        <span class="about-credentials__archive-action">Explore all certifications & courses</span>
+                    </span>
+                    <svg class="about-credentials__archive-arrow" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13 51 51 13M13 13h38v38"/></svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-contact" id="contact" aria-labelledby="about-contact-title">
+        <a class="about-contact__link" href="/contact/">
+            <div class="about-contact__inner">
+                <h2 class="about-contact__title" id="about-contact-title">Let's build something<br><em>dependable.</em></h2>
+                <p class="about-contact__body">Open to software, backend and infrastructure roles. Have something in mind? I'd like to hear about it.</p>
+                <span class="about-contact__action">Visit the contact page</span>
+            </div>
+            <span class="about-contact__arrow" aria-hidden="true">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 51 51 13M13 13h38v38"/></svg>
+            </span>
+        </a>
+    </section>
+</div>

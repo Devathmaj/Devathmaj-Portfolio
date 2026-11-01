@@ -1,0 +1,58 @@
+<section class="home-hero">
+    <hgroup>
+        <h1 class="home-hero__title">
+            <span class="segment segment--first">Devathmaj A Kaliyathan</span>
+            <span class="segment segment--second">Software</span>
+            <span class="segment segment--third">Engineer</span>
+        </h1>
+        <p class="home-hero__description">Computer Science Graduate (2026) with experience across the full stack, from schema design
+            and API development to containerized deployment on Azure. Built secure, role-based systems and automation
+            tools that reduced manual work. Integrated AI-powered features using Python, FastAPI, PostgreSQL and
+            React.</p>
+    </hgroup>
+    <span class="home-hero__warning">(Open to software / backend / infra roles.)</span>
+    <div class="home-hero__accent-image" data-image-shuffle data-shuffle-interval="1000">
+        <img data-shuffle-image class="home-hero__accent-img is-active"
+            src="/img/projects/confessit/confessit.png" alt="ConfessIt project screenshot"
+            sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="eager" fetchpriority="high" />
+        <img data-shuffle-image class="home-hero__accent-img"
+            src="/img/projects/football-market-intelligence/football-market.png"
+            alt="Football Market Intelligence dashboard"
+            sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="lazy" />
+        <img data-shuffle-image class="home-hero__accent-img" src="/img/projects/tracient/tracient.png"
+            alt="Tracient project screenshot"
+            sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="lazy" />
+        <img data-shuffle-image class="home-hero__accent-img" src="/img/projects/voucherbot/voucherbot.png"
+            alt="VoucherBot project screenshot"
+            sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="lazy" />
+        <img data-shuffle-image class="home-hero__accent-img" src="/img/projects/storageos/storageos-drive.png"
+            alt="StorageOS file manager screenshot"
+            sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="lazy" />
+        <img data-shuffle-image class="home-hero__accent-img" src="/img/projects/classsync/classsync-dashboard.png"
+            alt="ClassSync dashboard screenshot"
+            sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="lazy" />
+    </div>
+    <home-marquee class="home-hero__marquee"></home-marquee>
+    <nav class="home-nav">
+        <template webc:nokeep webc:for="linkGroup of site.nav">
+            <p class="home-nav__meta-title" @text="linkGroup.title">{{ linkGroup.title }}</p>
+            <ul class="home-nav__list" role="list">
+                <li class="home-nav__list-item" webc:for="link of linkGroup.links" webc:if="!link.footerOnly">
+                    <a class="home-nav__link" :href="link.url">
+                        <span class="home-nav__link-title" @text="link.text"></span>
+                        <span class="home-nav__link-description" inert @text="`— ${link.description}`">— {{
+                            link.description
+                            }}</span></a>
+                </li>
+                <template data-discovery-template="now" webc:keep webc:if="linkGroup.title === 'SELF'">
+                    <li class="home-nav__list-item home-nav__now" data-discovery-content="now">
+                        <a class="home-nav__link" href="/now/">
+                            <span class="home-nav__link-title">Now</span>
+                            <span class="home-nav__link-description">— Current focus, hobbies, projects and interests</span>
+                        </a>
+                    </li>
+                </template>
+            </ul>
+        </template>
+    </nav>
+</section>

@@ -1,0 +1,24 @@
+.visually-hidden {
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  width: 1px;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  border: 0;
+}
+
+.themed {
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+
+.dark {
+  --color-background: #2a2722;
+  --color-text: #fafafa;
+  --color-text-mid: #9f9f9f;
+  --color-border-mid: hsl(38deg 11% 25%);
+  --color-border-light: hsl(38deg 11% 35%);
+}
