@@ -11,7 +11,7 @@ const META_CACHE = 'portfolio-meta-v1';
 const ASSET_MAP_URL = '/__asset-map__';
 const SW_URL = '/sw.js';
 const SW_SCOPE = '/';
-const CONTROLLER_TIMEOUT = 8000;
+const CONTROLLER_TIMEOUT = 20000;
 const MESSAGE_TIMEOUT = 2000;
 const HANDOVER_TIMEOUT = 5000;
 const RELOAD_KEY = 'asset:reload-build';
@@ -59,6 +59,7 @@ class AssetManager {
     this.ready = null;
     this.started = false;
     this.handedOver = false;
+    this.precacheAdoption = null;
     this.listeners = new Set();
   }
 
@@ -175,6 +176,9 @@ class AssetManager {
     await this.writeAssetMap(manifest, precacheHandled);
     this.emit(this.scheduler.getProgress());
     this.scheduleStart();
+    // The worker may finish installing after the controller wait timed out.
+    // Adopt whatever it has precached before the scheduler re-fetches it.
+    if (!precacheHandled) this.schedulePrecacheAdoption();
     return this;
   }
 
@@ -343,9 +347,66 @@ class AssetManager {
     if (!build) return;
     if (build === this.buildId) {
       this.clearReloadGuard();
+      // This is the first-install handover that arrived after the timeout.
+      // Take over the precached critical assets instead of downloading them.
+      this.adoptPrecache();
       return;
     }
     this.reloadForBuild(build);
+  }
+
+  /**
+   * The controller appeared after the bootstrap timeout, so the scheduler may
+   * already be fetching critical assets that the worker has precached. Adopt
+   * them before more duplicate requests go out.
+   */
+  schedulePrecacheAdoption() {
+    if (navigator.serviceWorker.controller) {
+      this.adoptPrecache();
+      return;
+    }
+
+    // controllerchange is the normal signal, but it can be missed when the
+    // worker claims the page between the timeout and scheduler creation.
+    window.setTimeout(() => {
+      if (navigator.serviceWorker.controller) this.adoptPrecache();
+    }, 1000);
+  }
+
+  /**
+   * Inspect the Workbox precache for this build and hand its verified entries
+   * to the scheduler. Safe to call repeatedly; the scheduler deduplicates.
+   */
+  async adoptPrecache() {
+    if (!this.scheduler || !this.manifest) return null;
+    if (this.scheduler.precacheHandled) return null;
+    if (this.precacheAdoption) return this.precacheAdoption;
+
+    this.precacheAdoption = (async () => {
+      let build = await this.requestBuildId(navigator.serviceWorker.controller);
+      if (!build && navigator.serviceWorker.controller) {
+        // The worker can accept controllerchange a moment before it answers
+        // messages. One short retry covers that startup window.
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
+        build = await this.requestBuildId(navigator.serviceWorker.controller);
+      }
+      if (!build || build !== this.buildId) return null;
+
+      const result = await this.scheduler.adoptPrecache();
+      if (result && (result.adopted > 0 || result.verified > 0)) {
+        // Adopted assets are served by the Workbox precache route, so the
+        // regular asset map must stop pointing at their deleted duplicates.
+        await this.writeAssetMap(this.manifest, this.scheduler.precacheHandled);
+        document.dispatchEvent(
+          new CustomEvent('asset:precache-adopted', { detail: result }),
+        );
+      }
+      return result;
+    })().finally(() => {
+      this.precacheAdoption = null;
+    });
+
+    return this.precacheAdoption;
   }
 
   /**
@@ -452,9 +513,16 @@ class AssetManager {
   async writeAssetMap(manifest, precacheHandled) {
     if (!('caches' in window)) return;
 
+    // The scheduler knows exactly which assets the precache is covering, both
+    // from bootstrap and from late adoption. Fall back to the old critical
+    // heuristic only when the scheduler has not been created yet.
+    const precacheIds = this.scheduler?.precacheIds;
     const map = {};
     for (const asset of manifest.assets) {
-      if (precacheHandled && asset.critical) continue;
+      const precached = precacheIds
+        ? precacheIds.has(asset.id)
+        : precacheHandled && asset.critical;
+      if (precached) continue;
       map[asset.url] = this.scheduler?.cacheKey(asset) || revisionKey(asset);
     }
 

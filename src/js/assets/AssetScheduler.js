@@ -5,11 +5,14 @@ import {
   getDownloadQueue,
   getMeta,
   getPendingBuild,
+  markAssetsAdopted,
   putQueue,
   stageBuild,
 } from './db.js';
 
 const ASSET_CACHE = 'portfolio-assets-v1';
+const PRECACHE_CACHE_PREFIX = 'workbox-precache';
+const PRECACHE_LOOKUP_RETRY_MS = 5000;
 const MAX_ATTEMPTS = 3;
 const RETRY_BASE_MS = 1500;
 
@@ -73,6 +76,9 @@ export class AssetScheduler {
     this.musicSkipped = false;
     this.quotaExceeded = false;
     this.listenersAttached = false;
+    this.precacheCacheName = null;
+    this.precacheLookupAt = 0;
+    this.adoption = null;
   }
 
   get cacheName() {
@@ -83,6 +89,113 @@ export class AssetScheduler {
     const url = new URL(asset.url, window.location.origin);
     url.searchParams.set('__rev', asset.revision);
     return url.href;
+  }
+
+  /** Workbox stores precache entries under the same URL with its own param. */
+  precacheKey(asset) {
+    const url = new URL(asset.url, window.location.origin);
+    url.searchParams.set('__WB_REVISION__', asset.revision);
+    return url.href;
+  }
+
+  /**
+   * Open the Workbox precache for this scope. The name is discovered rather
+   * than assumed so a Workbox version bump cannot silently disable adoption.
+   */
+  async openPrecache({ force = false } = {}) {
+    if (!('caches' in window)) return null;
+
+    if (this.precacheCacheName) {
+      try {
+        if (await caches.has(this.precacheCacheName)) {
+          return await caches.open(this.precacheCacheName);
+        }
+      } catch {
+        // Fall through and rediscover the cache.
+      }
+      this.precacheCacheName = null;
+    }
+
+    // Avoid enumerating caches for every asset while the worker is still
+    // installing. A controllerchange or a later adoption pass forces a retry.
+    if (!force && Date.now() - this.precacheLookupAt < PRECACHE_LOOKUP_RETRY_MS) {
+      return null;
+    }
+    this.precacheLookupAt = Date.now();
+
+    try {
+      const names = (await caches.keys()).filter((name) =>
+        name.startsWith(PRECACHE_CACHE_PREFIX),
+      );
+      if (!names.length) return null;
+
+      let name = names[0];
+      try {
+        const registration = await navigator.serviceWorker?.getRegistration?.();
+        if (registration?.scope) {
+          const scoped = names.find((candidate) => candidate.endsWith(registration.scope));
+          if (scoped) name = scoped;
+        }
+      } catch {
+        // A scope lookup failure only costs us cache-name preference.
+      }
+
+      this.precacheCacheName = name;
+      return await caches.open(name);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Find the precache entry for an asset without ever creating a cache. */
+  async matchPrecache(cache, asset) {
+    const direct = await cache.match(this.precacheKey(asset));
+    if (direct) return direct;
+
+    // Workbox omits the revision for entries it treats as immutable. Match by
+    // pathname as a fallback, but never accept a different revision.
+    const target = new URL(asset.url, window.location.origin);
+    for (const request of await cache.keys()) {
+      const url = new URL(request.url);
+      if (url.origin !== target.origin || url.pathname !== target.pathname) continue;
+      const revision = url.searchParams.get('__WB_REVISION__');
+      if (revision && revision !== asset.revision) continue;
+      const response = await cache.match(request);
+      if (response) return response;
+    }
+    return null;
+  }
+
+  /**
+   * Prove the precache copy is the asset this build expects before anything is
+   * deleted. Size and revision both come from the build-time manifest.
+   */
+  async verifyPrecache(asset, response) {
+    if (!response || response.status !== 200) return false;
+    if (!asset.size) return true;
+
+    try {
+      const buffer = await response.clone().arrayBuffer();
+      if (buffer.byteLength !== asset.size) return false;
+      if (asset.revision?.startsWith('sha256-')) {
+        const digest = await sha256Hex(buffer);
+        if (digest && asset.revision !== `sha256-${digest.slice(0, 16)}`) return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Remove the fallback copy only after the precache copy has been verified. */
+  async deleteRegularCopy(asset) {
+    this.cachedIds.delete(asset.id);
+    try {
+      const cache = await caches.open(ASSET_CACHE);
+      await cache.delete(this.cacheKey(asset));
+    } catch {
+      // A missing cache or entry is not an adoption failure.
+    }
   }
 
   setManifest(manifest) {
@@ -178,13 +291,26 @@ export class AssetScheduler {
         record.error = null;
         record.updatedAt = Date.now();
         resets.push(record);
+        continue;
+      }
+      if (record.adopted && !this.precacheHandled) {
+        // The precache cannot be confirmed for this session (no matching
+        // controller yet), so fall back to a normal download. Late adoption
+        // reclaims it as soon as the worker takes over.
+        record.status = 'pending';
+        record.adopted = false;
+        record.updatedAt = Date.now();
+        resets.push(record);
       }
     }
     if (resets.length) await putQueue(resets);
 
     for (const record of this.records.values()) {
-      if (record.status === 'completed') this.cachedIds.add(record.id);
       if (record.status === 'precache') this.precacheIds.add(record.id);
+      else if (record.status === 'completed') {
+        if (record.adopted) this.precacheIds.add(record.id);
+        else this.cachedIds.add(record.id);
+      }
     }
 
     for (const record of this.records.values()) {
@@ -291,6 +417,26 @@ export class AssetScheduler {
     }
   }
 
+  /**
+   * Check both places an asset can live before issuing a request. The precache
+   * only ever contains critical assets, so non-critical downloads skip it.
+   */
+  async findCached(asset) {
+    if (this.precacheIds.has(asset.id)) return { kind: 'precache', response: null };
+    if (await this.isCached(asset)) return { kind: 'regular' };
+    if (!asset.critical) return null;
+
+    try {
+      const precache = await this.openPrecache();
+      if (!precache) return null;
+      const response = await this.matchPrecache(precache, asset);
+      if (response) return { kind: 'precache', response };
+    } catch {
+      // An unreadable precache is treated as a miss.
+    }
+    return null;
+  }
+
   async pump(group) {
     if (this.pumping[group]) return;
     this.pumping[group] = true;
@@ -305,14 +451,17 @@ export class AssetScheduler {
         if (!asset) break;
         this.queuedIds.delete(asset.id);
 
-        if (this.cachedIds.has(asset.id) || this.precacheIds.has(asset.id)) {
-          await this.markCompleted(asset, group, this.records.get(asset.id)?.bytes || asset.size);
-          continue;
-        }
-
-        if (await this.isCached(asset)) {
+        const found = await this.findCached(asset);
+        if (found?.kind === 'regular') {
           await this.markCompleted(asset, group, asset.size);
           continue;
+        }
+        if (found?.kind === 'precache') {
+          if (!found.response) {
+            await this.markAdopted(asset, group);
+            continue;
+          }
+          if (await this.adoptAsset(asset, group, found.response)) continue;
         }
 
         this.active[group] += 1;
@@ -331,6 +480,16 @@ export class AssetScheduler {
 
   async download(asset, group) {
     if (this.inflight.has(asset.id)) return this.inflight.get(asset.id);
+
+    // Adoption can finish between the pump check and this call.
+    if (this.cachedIds.has(asset.id)) {
+      await this.markCompleted(asset, group, this.records.get(asset.id)?.bytes || asset.size);
+      return;
+    }
+    if (this.precacheIds.has(asset.id)) {
+      await this.markAdopted(asset, group);
+      return;
+    }
 
     const controller = new AbortController();
     const task = (async () => {
@@ -373,6 +532,13 @@ export class AssetScheduler {
       await this.markCompleted(asset, group, buffer.byteLength);
     })().catch(async (error) => {
       if (error?.name === 'AbortError') {
+        if (this.precacheIds.has(asset.id)) {
+          // Adoption claimed this asset before aborting it. The verified
+          // precache copy is the source of truth, so keep the record pending
+          // here and let adoption mark it complete; never requeue it.
+          this.abortedFor.delete(asset.id);
+          return;
+        }
         // Preemption is not a failure: keep the record pending and let the
         // finally block put it back in the right queue.
         const record = this.records.get(asset.id) || this.makeRecord(asset);
@@ -419,10 +585,161 @@ export class AssetScheduler {
     record.completedAt = Date.now();
     record.updatedAt = record.completedAt;
     this.records.set(asset.id, record);
-    this.cachedIds.add(asset.id);
+    if (this.precacheIds.has(asset.id)) {
+      // Adoption claimed this asset while the regular check was in flight.
+      record.adopted = true;
+      this.cachedIds.delete(asset.id);
+    } else {
+      this.cachedIds.add(asset.id);
+    }
     await putQueue([record]);
     if (group === 'user') this.scheduleResume();
     this.emit();
+  }
+
+  /** Record an asset whose verified copy now lives in the Workbox precache. */
+  markAdoptedRecord(asset) {
+    const record = this.records.get(asset.id) || this.makeRecord(asset);
+    record.status = 'completed';
+    record.adopted = true;
+    record.bytes = record.bytes || asset.size || 0;
+    record.error = null;
+    record.completedAt = Date.now();
+    record.updatedAt = record.completedAt;
+    this.records.set(asset.id, record);
+    this.precacheIds.add(asset.id);
+    this.cachedIds.delete(asset.id);
+    this.failed.delete(asset.id);
+    return record;
+  }
+
+  async markAdopted(asset, group) {
+    const record = this.markAdoptedRecord(asset);
+    await putQueue([record]);
+    if (group === 'user') this.scheduleResume();
+    this.emit();
+  }
+
+  /**
+   * Adopt one asset discovered during a normal cache check. The precache copy
+   * is verified first, so the regular fallback is never removed on a guess.
+   */
+  async adoptAsset(asset, group, response) {
+    if (!(await this.verifyPrecache(asset, response))) return false;
+
+    // Claim the asset before deleting anything: if a later step fails, the
+    // verified precache copy remains the source of truth.
+    this.precacheIds.add(asset.id);
+    this.queuedIds.delete(asset.id);
+    for (const name of GROUPS) {
+      this.queues[name] = this.queues[name].filter((entry) => entry.id !== asset.id);
+    }
+
+    await this.deleteRegularCopy(asset);
+    await this.markAdopted(asset, group);
+    try {
+      await markAssetsAdopted([asset]);
+    } catch (error) {
+      console.warn('[assets] Could not flag an adopted asset', error);
+    }
+    return true;
+  }
+
+  /** Adopt every critical asset the worker has already precached. */
+  async adoptPrecache() {
+    if (this.adoption) return this.adoption;
+    this.adoption = this.runAdoption().finally(() => {
+      this.adoption = null;
+    });
+    return this.adoption;
+  }
+
+  async runAdoption() {
+    const critical = this.assets.filter((asset) => asset.critical);
+    const result = { inspected: 0, verified: 0, adopted: 0, skipped: 0, missing: 0 };
+    if (!critical.length || !('caches' in window)) return result;
+
+    const cache = await this.openPrecache({ force: true });
+    if (!cache) return result;
+
+    const candidates = [];
+    for (const asset of critical) {
+      result.inspected += 1;
+      const record = this.records.get(asset.id);
+      if (record?.adopted && this.precacheIds.has(asset.id)) {
+        result.skipped += 1;
+        continue;
+      }
+
+      const response = await this.matchPrecache(cache, asset);
+      if (!response || !(await this.verifyPrecache(asset, response))) {
+        result.missing += 1;
+        continue;
+      }
+
+      result.verified += 1;
+      candidates.push(asset);
+    }
+
+    const before = this.precacheHandled;
+
+    if (candidates.length) {
+      const ids = new Set(candidates.map((asset) => asset.id));
+
+      // Stop fallback work before waiting on anything. Claiming the ids here
+      // also stops an aborted transfer from re-enqueueing them when it unwinds.
+      for (const id of ids) {
+        this.precacheIds.add(id);
+        this.queuedIds.delete(id);
+      }
+      for (const group of GROUPS) {
+        this.queues[group] = this.queues[group].filter((asset) => !ids.has(asset.id));
+      }
+
+      const inflight = [];
+      for (const id of ids) {
+        const controller = this.controllers.get(id);
+        if (!controller) continue;
+        controller.abort();
+        const task = this.inflight.get(id);
+        if (task) inflight.push(task);
+      }
+      if (inflight.length) await Promise.allSettled(inflight);
+
+      const adoptedRecords = [];
+      for (const asset of candidates) {
+        await this.deleteRegularCopy(asset);
+        adoptedRecords.push(this.markAdoptedRecord(asset));
+        result.adopted += 1;
+      }
+      if (adoptedRecords.length) await putQueue(adoptedRecords);
+
+      try {
+        await markAssetsAdopted(candidates);
+      } catch (error) {
+        console.warn('[assets] Could not flag adopted assets', error);
+      }
+    }
+
+    this.updatePrecacheHandled(critical.length);
+    if (result.adopted > 0 || before !== this.precacheHandled) this.emit();
+    if (result.adopted > 0) this.maybeAdvance();
+    return result;
+  }
+
+  /** The precache is "handled" only when every critical asset is covered. */
+  updatePrecacheHandled(total = this.assets.filter((asset) => asset.critical).length) {
+    if (!total) {
+      this.precacheHandled = false;
+      return false;
+    }
+
+    let covered = 0;
+    for (const asset of this.assets) {
+      if (asset.critical && this.precacheIds.has(asset.id)) covered += 1;
+    }
+    this.precacheHandled = covered >= total;
+    return this.precacheHandled;
   }
 
   async markFailed(asset, group, error) {

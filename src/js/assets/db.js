@@ -239,6 +239,24 @@ export async function stageBuild(manifest, queueRecords, obsoleteAssets = []) {
   await transactionDone(tx);
 }
 
+/**
+ * Flag asset rows that are backed by the service worker precache. The assets
+ * store is a projection of the manifest, so only rows matching the same
+ * revision are touched; rows from an older build are left alone.
+ */
+export async function markAssetsAdopted(assets) {
+  if (!assets?.length) return;
+  const revisions = new Map(assets.map((asset) => [asset.id, asset.revision]));
+  const rows = await getAll('assets');
+  const updates = [];
+  for (const row of rows) {
+    if (revisions.get(row.id) !== row.revision) continue;
+    if (row.adopted === true) continue;
+    updates.push({ ...row, adopted: true });
+  }
+  if (updates.length) await putAll('assets', updates);
+}
+
 export async function getActiveManifest() {
   return getMeta('activeManifest', null);
 }
