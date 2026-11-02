@@ -10,7 +10,7 @@ layout: false
         <loc>{{ siteUrl }}/</loc>
     </url>
 {%- for entry in collections.page %}
-{%- if (entry.url | replace("/experience/", "")) == entry.url %}
+{%- if (entry.url | replace("/experience/", "")) == entry.url and entry.url != "/now.html" %}
     <url>
         <loc>{{ siteUrl }}{{ entry.url | canonicalUrl }}</loc>
     </url>
