@@ -36,12 +36,15 @@
     {% set canonical = page.url | canonicalUrl %}
     <link rel="canonical" href="https://devathmaj.me{{ canonical }}">
     
-    <link rel="icon" href="/meta/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    {# Google Search supports PNG and ICO (not SVG), so the 96x96 PNG is the
+       primary declaration. It satisfies Google's recommendation to use an icon
+       larger than 48x48, while the smaller variants keep browser tabs crisp. #}
     <link rel="icon" type="image/png" sizes="96x96" href="/meta/favicon-96x96.png" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/png" sizes="48x48" href="/meta/favicon-48x48.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/meta/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/meta/favicon-16x16.png" />
+    <link rel="icon" href="/meta/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="180x180" href="/meta/apple-touch-icon.png" />
     <link rel="me" href="https://github.com/Devathmaj">
     <link rel="me" href="https://linkedin.com/in/devathmaj">
