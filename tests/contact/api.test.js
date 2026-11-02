@@ -67,9 +67,11 @@ test('modified, malformed, expired, future, and overlong sessions are rejected',
 });
 
 test('valid request reaches Resend with fixed server-controlled headers and HMAC buckets', async () => {
+  env.CONTACT_FROM_EMAIL = 'Portfolio Contact <contact@devathmaj.me>';
   assert.equal((await call()).status, 200);
   assert.equal(sends.length, 1);
   const body = JSON.parse(sends[0].body);
+  assert.equal(body.from, env.CONTACT_FROM_EMAIL);
   assert.equal(body.subject, 'Portfolio contact form message');
   assert.equal(body.reply_to, fields.email);
   assert.deepEqual(body.to, [env.CONTACT_TO_EMAIL]);
@@ -194,6 +196,22 @@ test('provider auth/rate-limit/server/network failures never report success and 
 });
 
 test('email config has no fallback sender or recipient', async () => {
+  const diagnostics = mock.method(console, 'error', () => {});
+  const sender = env.CONTACT_FROM_EMAIL;
+  for (const value of [undefined, '', 'invalid-sender']) {
+    env.CONTACT_FROM_EMAIL = value;
+    const response = await call();
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { error: 'temporarily_unavailable' });
+  }
+  assert.equal(diagnostics.mock.callCount(), 3);
+  for (const entry of diagnostics.mock.calls) {
+    assert.deepEqual(entry.arguments, ['contact_configuration_error', {
+      variable: 'CONTACT_FROM_EMAIL', reason: 'missing_or_invalid',
+    }]);
+  }
+  assert.equal(limits.filter((l) => l.key.startsWith('session:')).length, 0);
+  env.CONTACT_FROM_EMAIL = sender;
   delete env.CONTACT_TO_EMAIL;
   assert.equal((await call()).status, 503);
   assert.equal(sends.length, 0);

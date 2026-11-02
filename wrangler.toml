@@ -3,8 +3,8 @@ pages_build_output_dir = "_site"
 compatibility_date = "2026-10-31"
 compatibility_flags = ["nodejs_compat"]
 
-# Secrets and runtime configuration (RESEND_API_KEY, TURNSTILE_SECRET_KEY,
-# CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL) are set in the Cloudflare Pages dashboard.
+# Secrets (RESEND_API_KEY, TURNSTILE_SECRET_KEY, CONTACT_TO_EMAIL and signing
+# secrets) are managed in Cloudflare Pages. The sender is a production variable.
 # Local values belong in the git-ignored .dev.vars file.
 
 [vars]
@@ -12,6 +12,17 @@ CONTACT_ALLOWED_ORIGIN = "https://devathmaj.me"
 CONTACT_ALLOWED_HOSTNAME = "devathmaj.me"
 
 [[durable_objects.bindings]]
+name = "CONTACT_LIMITER"
+class_name = "ContactRateLimitShard"
+script_name = "portfolio-contact-limiter"
+
+# Pages variables/bindings are non-inheritable when overriding an environment.
+[env.production.vars]
+CONTACT_ALLOWED_ORIGIN = "https://devathmaj.me"
+CONTACT_ALLOWED_HOSTNAME = "devathmaj.me"
+CONTACT_FROM_EMAIL = "Portfolio Contact <contact@devathmaj.me>"
+
+[[env.production.durable_objects.bindings]]
 name = "CONTACT_LIMITER"
 class_name = "ContactRateLimitShard"
 script_name = "portfolio-contact-limiter"
