@@ -1,7 +1,7 @@
 import { apiFetch } from './api/client';
 
 const CONTACT_ENDPOINT = '/api/contact';
-const TURNSTILE_SITE_KEY = '0x4AAAAAAEtv53G9bikXI2ca';
+const TURNSTILE_SITE_KEY = '0x4AAAAAAFwSDW2gb3WgbrG7';
 
 const RATE_LIMIT_MAX = 3;
 const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
