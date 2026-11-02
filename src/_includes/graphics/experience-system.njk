@@ -9,6 +9,24 @@
             <path d="M72 76H180V142M72 126H154V161M72 176H126V183M72 226H101V205M305 167H355V116H442M307 210H365V240H448"/>
             <path d="M91 76H180V142M323 167H355V116H416" stroke-dasharray="3 5"/>
         </g>
+        <g class="experience-system__packets" fill="currentColor" stroke="none">
+            <g class="experience-system__route experience-system__route--feed-a">
+                <circle class="experience-system__packet" r="2.4"/>
+                <circle class="experience-system__packet" r="2.4"/>
+            </g>
+            <g class="experience-system__route experience-system__route--feed-b">
+                <circle class="experience-system__packet" r="2.4"/>
+                <circle class="experience-system__packet" r="2.4"/>
+            </g>
+            <g class="experience-system__route experience-system__route--database">
+                <circle class="experience-system__packet" r="2.4"/>
+                <circle class="experience-system__packet" r="2.4"/>
+            </g>
+            <g class="experience-system__route experience-system__route--archive">
+                <circle class="experience-system__packet" r="2.4"/>
+                <circle class="experience-system__packet" r="2.4"/>
+            </g>
+        </g>
         {% for role in range(0, job.visual.roleCount) %}
             <g transform="translate({{ 40 + (role % 2) * 32 }} {{ 60 + ((role / 2) | int) * 50 }})" stroke="currentColor" stroke-width="1.3" fill="var(--color-background)">
                 <rect x="-13" y="-13" width="26" height="30" rx="3"/>
@@ -45,9 +63,12 @@
             <g fill="none" stroke-width="0.9">
                 <path d="M0 -56V-49M0 56V49M-56 0H-49M56 0H49M39.6 -39.6L34.6 -34.6M-39.6 39.6L-34.6 34.6M39.6 39.6L34.6 34.6M-39.6 -39.6L-34.6 -34.6"/>
             </g>
-            <path d="M0 0V-31M0 0L21 13" fill="none"/>
-            <circle r="4" fill="currentColor" stroke="none"/>
         </g>
+        <g class="experience-system__clock-hands" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path class="experience-system__clock-hand experience-system__clock-hand--hour" d="M255 150L276 163"/>
+            <path class="experience-system__clock-hand experience-system__clock-hand--minute" d="M255 150V119"/>
+        </g>
+        <circle cx="255" cy="150" r="4" fill="currentColor" stroke="none"/>
         <g transform="translate(255 150)" fill="none" stroke="currentColor" stroke-width="1.3">
             <path d="M-64 -40A76 76 0 0 1 64 -40"/>
             <path d="M53 -48L64 -40L62 -53"/>

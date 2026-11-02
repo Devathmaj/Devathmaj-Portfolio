@@ -346,6 +346,73 @@
   }
 }
 
+.experience-system__packet {
+  opacity: 0;
+  offset-rotate: 0deg;
+}
+
+.experience-system__route--feed-a .experience-system__packet {
+  offset-path: path('M72 76H180V142');
+}
+
+.experience-system__route--feed-b .experience-system__packet {
+  offset-path: path('M72 126H154V161');
+}
+
+.experience-system__route--database .experience-system__packet {
+  offset-path: path('M305 167H355V116H442');
+}
+
+.experience-system__route--archive .experience-system__packet {
+  offset-path: path('M307 210H365V240H448');
+}
+
+.experience-system__clock-hand {
+  transform-box: view-box;
+  transform-origin: 255px 150px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .experience-system__packet {
+    animation: experience-packet 3s linear infinite;
+  }
+
+  .experience-system__route .experience-system__packet:nth-of-type(2) {
+    animation-delay: -1.5s;
+  }
+
+  .experience-system__clock-hand--minute {
+    animation: experience-clock-turn 8s linear infinite;
+  }
+
+  .experience-system__clock-hand--hour {
+    animation: experience-clock-turn 96s linear infinite;
+  }
+}
+
+@keyframes experience-packet {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+
+  8%,
+  86% {
+    opacity: 1;
+  }
+
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes experience-clock-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 .experience-system__caption {
   display: grid;
   gap: 0.55rem;
