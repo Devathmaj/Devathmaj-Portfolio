@@ -15,8 +15,8 @@ Runs `node --test tests/contact/*.test.js`:
   verification, validation, Idempotency-Key behaviour, rate-limit calls, Resend
   failures, and error mapping. Resend and Turnstile are mocked.
 - `frontend.test.js` — the DOM controller: session init, Turnstile reuse,
-  duplicate-submit prevention, retry keys, error messaging, and Taxi
-  destroy/remount cleanup.
+  duplicate-submit prevention, retry keys, error messaging, draft survival
+  across refresh, and Taxi destroy/remount cleanup.
 - `limiter.test.js` — the Durable Object: IP and session quotas, fixed windows,
   alarms, SQLite failure handling, and rejection of malformed/internal requests.
 

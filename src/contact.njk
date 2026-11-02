@@ -31,6 +31,8 @@
                 <h2 class="visually-hidden" id="contact-direct-title">Contact details</h2>
                 <p class="contact-direct__label">Direct</p>
                 <p class="contact-direct__system">Skip the form. Write directly.</p>
+                {# Cloudflare must not obfuscate these addresses; the display stays literal even when scripts fail. #}
+                <!--email_off-->
                 <ul class="contact-direct__list">
                     {% for channel in contact.channels %}
                         <li class="contact-direct__item">
@@ -39,6 +41,7 @@
                         </li>
                     {% endfor %}
                 </ul>
+                <!--/email_off-->
                 <p class="contact-direct__note">Email or LinkedIn &mdash; both reach me directly.</p>
             </div>
             <div class="contact-direct__ornament" aria-hidden="true">

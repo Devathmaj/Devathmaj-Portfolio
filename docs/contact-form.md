@@ -106,10 +106,13 @@ the variable name only, returns a generic 503, and never calls Resend. Local and
 preview environments do not inherit the production sender.
 
 The frontend generates `crypto.randomUUID()` for each logical submission and
-retains it on retry with unchanged fields. A tab-local record contains only its
-UUID, payload fingerprint and creation time; input itself is never stored there.
-Input is preserved after errors and cleared after acknowledged success. Editing
-the fields or submitting after success creates a new logical submission.
+retains it on retry with unchanged fields. A tab-local pending record contains
+only its UUID, payload fingerprint and creation time. Separately, a tab-local
+draft keeps the unsent name, email, subject and message in `sessionStorage`, so
+a refresh (for example to recover the Turnstile widget) does not lose what the
+visitor has written. The honeypot and Turnstile token are never stored. Input is
+preserved after errors, cleared after acknowledged success, and editing the
+fields or submitting after success creates a new logical submission.
 
 Pages sends `Idempotency-Key: contact/<HMAC(secret, "submission:" + UUID)>` to
 Resend. Cookie rotation does not change this key. Email payloads contain no

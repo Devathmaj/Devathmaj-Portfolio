@@ -61,8 +61,10 @@
             {% endfor %}
             <section class="footer__section">
                 <div class="footer__meta-title">Contact</div>
+                {# Keep the address literal so Cloudflare never replaces it with a script-decoded placeholder. #}
+                <!--email_off-->
                 <a class="footer__link" href="mailto:devathmaj@gmail.com">devathmaj@gmail.com</a>
-
+                <!--/email_off-->
             </section>
         </nav>
         <div class="footer__colophon">

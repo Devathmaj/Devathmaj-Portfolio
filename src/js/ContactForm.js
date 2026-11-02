@@ -6,8 +6,13 @@ const TURNSTILE_SITE_KEY = '0x4AAAAAAFwSDW2gb3WgbrG7';
 let turnstileLoader = null;
 let themeListener = null;
 const controllers = new WeakMap();
-// Keep only a digest and UUID in tab storage, never the message or email.
+// The pending record keeps only a digest and UUID. The draft record keeps the
+// unsent fields in this tab so a refresh (often needed to recover Turnstile)
+// never throws away what the visitor has written.
 const PENDING_KEY = 'contact_pending_submission';
+const DRAFT_KEY = 'contact_form_draft';
+const DRAFT_FIELDS = ['name', 'email', 'subject', 'message'];
+const DRAFT_SAVE_DELAY = 200;
 
 function loadTurnstile() {
   if (window.turnstile) return Promise.resolve(window.turnstile);
@@ -46,9 +51,19 @@ export default class ContactForm {
     this.destroyed = false;
     this.sessionReady = false;
     this.pending = null;
+    this.draftTimer = null;
 
     this.onSubmit = this.onSubmit.bind(this);
     this.form.addEventListener('submit', this.onSubmit);
+
+    this.onDraftChange = this.scheduleDraftSave.bind(this);
+    this.form.addEventListener('input', this.onDraftChange);
+    this.form.addEventListener('change', this.onDraftChange);
+
+    this.onPageHide = this.saveDraft.bind(this);
+    window.addEventListener('pagehide', this.onPageHide);
+
+    this.restoreDraft();
 
     this.onThemeToggle = (event) => {
       if (!event.shiftKey || event.key !== 'D') return;
@@ -95,6 +110,49 @@ export default class ContactForm {
       : 'Too many attempts. Please try again later.';
   }
 
+  restoreDraft() {
+    let draft = null;
+    try { draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY)); } catch { /* Optional tab persistence. */ }
+    if (!draft || typeof draft !== 'object') return;
+
+    for (const name of DRAFT_FIELDS) {
+      const field = this.form.elements.namedItem(name);
+      const value = draft[name];
+      if (!field || typeof value !== 'string' || field.value) continue;
+      field.value = field.maxLength > 0 ? value.slice(0, field.maxLength) : value;
+    }
+  }
+
+  scheduleDraftSave() {
+    window.clearTimeout(this.draftTimer);
+    this.draftTimer = window.setTimeout(() => this.saveDraft(), DRAFT_SAVE_DELAY);
+  }
+
+  saveDraft() {
+    window.clearTimeout(this.draftTimer);
+    this.draftTimer = null;
+
+    const draft = {};
+    let hasContent = false;
+    for (const name of DRAFT_FIELDS) {
+      const field = this.form.elements.namedItem(name);
+      if (!field) continue;
+      draft[name] = field.value;
+      if (field.value !== '') hasContent = true;
+    }
+
+    try {
+      if (hasContent) sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      else sessionStorage.removeItem(DRAFT_KEY);
+    } catch { /* Storage may be unavailable; the form still works. */ }
+  }
+
+  clearDraft() {
+    window.clearTimeout(this.draftTimer);
+    this.draftTimer = null;
+    try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* Optional tab persistence. */ }
+  }
+
   async submissionKey(fields) {
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(fields)));
     const fingerprint = Array.from(new Uint8Array(digest), (v) => v.toString(16).padStart(2, '0')).join('');
@@ -112,8 +170,13 @@ export default class ContactForm {
   }
 
   destroy() {
+    if (this.destroyed) return;
     this.destroyed = true;
+    this.saveDraft();
     this.form.removeEventListener('submit', this.onSubmit);
+    this.form.removeEventListener('input', this.onDraftChange);
+    this.form.removeEventListener('change', this.onDraftChange);
+    window.removeEventListener('pagehide', this.onPageHide);
     window.removeEventListener('keypress', this.onThemeToggle);
     if (themeListener === this.onThemeToggle) themeListener = null;
     window.clearTimeout(this.statusTimer);
@@ -179,6 +242,7 @@ export default class ContactForm {
     event.preventDefault();
     if (this.busy || this.destroyed) return;
     this.busy = true;
+    this.saveDraft();
 
     const submitBtn = this.submitBtn;
     submitBtn.disabled = true;
@@ -237,6 +301,7 @@ export default class ContactForm {
 
       this.pending = null;
       try { sessionStorage.removeItem(PENDING_KEY); } catch { /* Optional persistence. */ }
+      this.clearDraft();
       this.form.reset();
       this.resetTurnstile();
       submitBtn.textContent = 'Send message';

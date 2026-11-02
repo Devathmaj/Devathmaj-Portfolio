@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { JSDOM } from 'jsdom';
 import ContactForm from '../../src/js/ContactForm.js';
 
-let dom, controller, form, calls, renders, resets, reply;
+let dom, controller, form, calls, renders, resets, reply, template;
 const nativeFormData = globalThis.FormData;
 const submit = () => controller.onSubmit({ preventDefault() {} });
 const fill = () => {
@@ -13,7 +13,7 @@ const fill = () => {
 
 beforeEach(async () => {
   // Exercise the real form markup instead of a copy of its selectors/fields.
-  const template = fs.readFileSync('src/contact.njk', 'utf8').match(/<form[\s\S]*?<\/form>/)[0];
+  template = fs.readFileSync('src/contact.njk', 'utf8').match(/<form[\s\S]*?<\/form>/)[0];
   dom = new JSDOM(template, { url: 'https://devathmaj.me/contact' });
   globalThis.window = dom.window; globalThis.document = dom.window.document;
   globalThis.sessionStorage = dom.window.sessionStorage;
@@ -116,6 +116,40 @@ test('missing token prevents POST and expiry callback resets original widget', a
   await submit();
   assert.equal(calls.filter((c) => c.method === 'POST').length, 0);
   renders[0]['expired-callback'](); assert.ok(resets > 0);
+});
+
+test('unsent input survives a refresh and is cleared after acknowledged success', async () => {
+  const values = { name: 'Ada Lovelace', email: 'ada@example.net', subject: 'Hello', message: 'A half-written message' };
+  for (const [name, value] of Object.entries(values)) {
+    form.elements.namedItem(name).value = value;
+    form.elements.namedItem(name).dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  }
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 300));
+
+  const draft = JSON.parse(sessionStorage.getItem('contact_form_draft'));
+  assert.deepEqual(draft, values);
+  assert.ok(!Object.hasOwn(draft, 'website'));
+  assert.ok(!Object.hasOwn(draft, 'cf-turnstile-response'));
+
+  // A refresh mounts a fresh form against the same tab storage.
+  controller.destroy();
+  document.body.innerHTML = template;
+  form = document.querySelector('form');
+  controller = new ContactForm(form);
+  await controller.sessionPromise;
+  for (const [name, value] of Object.entries(values)) {
+    assert.equal(form.elements.namedItem(name).value, value);
+  }
+
+  fill();
+  await submit();
+  assert.equal(sessionStorage.getItem('contact_form_draft'), null);
+});
+
+test('pagehide flushes the latest draft before the tab is torn down', () => {
+  form.elements.namedItem('message').value = 'Written just before refresh';
+  window.dispatchEvent(new dom.window.Event('pagehide'));
+  assert.match(sessionStorage.getItem('contact_form_draft'), /Written just before refresh/);
 });
 
 test('submission waits for session initialization before making POST', async () => {
