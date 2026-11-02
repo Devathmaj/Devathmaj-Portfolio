@@ -11,6 +11,7 @@ Supporting notes for the site. Start wherever your question lives.
 | [Testing](testing.md) | Contact-form tests, the local integration check, stylelint, and the manual QA pass |
 | [Troubleshooting](troubleshooting.md) | The failures you'll actually hit, and what causes them |
 | [Contact form](contact-form.md) | Deep dive on sessions, Turnstile, Resend, rate limiting, and production activation |
+| [Social previews](social-previews.md) | The shared link-preview image, its derivatives, and every platform re-scrape |
 
 ## The 30-second orientation
 
@@ -32,5 +33,6 @@ npm install          # deps + patches + dev build id
 npm start            # dev server at http://localhost:8080
 npm run build        # production build into _site/
 npm run preview      # serve the build with Wrangler (contact form works here)
+npm run social:preview # regenerate link-preview images from the master artwork
 npm run test:contact # contact unit tests
 ```

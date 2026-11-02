@@ -65,15 +65,6 @@ export const canonicalUrl = (url = '/') => {
   return path;
 };
 
-/** Build the output path for a page's Open Graph image document. */
-export const opengraphPermalink = (url = '/') => {
-  const path = canonicalUrl(url);
-  if (path === '/') return '/opengraph/index.html';
-  return path.endsWith('/')
-    ? `/opengraph${path}index.html`
-    : `/opengraph${path}.html`;
-};
-
 export const getProjectNeighbors = (items, url) => {
   const index = items.findIndex((item) => item.url === url);
 

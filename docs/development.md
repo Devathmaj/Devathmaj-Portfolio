@@ -34,6 +34,7 @@ in watch mode alongside `npx @11ty/eleventy --serve`.
 | `npm run build` | Clean CSS/JS, compile, bundle, render, then generate assets |
 | `npm run clean` | Delete `_site/` |
 | `npm run preview` | Serve `_site` with Wrangler on `:8788`, contact Function included |
+| `npm run social:preview` | Regenerate the shared link-preview image derivatives |
 | `npm run contact:setup` | Append missing local signing secrets to `.dev.vars` |
 | `npm run contact:limiter` | Run the rate-limiter Worker locally on `:8787` |
 | `npm run test:contact` | Contact unit tests (`node --test`) |
@@ -98,7 +99,6 @@ src/
   scss/                 styles
   js/                   client runtime (router, transitions, modules, worker)
   content/              Markdown: projects, now, speaking, additional-work
-  opengraph/            OG card documents
   *.njk                 page templates
   img/ music/ fonts/ certificate/ resume/ meta/
   _headers _redirects robots.txt

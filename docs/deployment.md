@@ -151,6 +151,9 @@ canonical without a trailing slash.
 
 - [ ] `npm run build` succeeds locally and `_site` contains `sw.js`,
       `assets/manifest.json`, `_headers`, `_redirects`.
+- [ ] `_site/meta` contains the social preview derivatives and each page emits
+      the image for its section; re-scrape the platforms in
+      [`social-previews.md`](social-previews.md#platform-checklist) after deploy.
 - [ ] `npm run preview` serves the home, projects, and contact pages.
 - [ ] Contact `GET /api/contact` issues a session; a bad POST returns a useful
       status without calling Resend.

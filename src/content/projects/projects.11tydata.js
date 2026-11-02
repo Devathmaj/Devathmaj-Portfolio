@@ -6,6 +6,7 @@
   backLinkText: 'All projects',
   layout: 'layouts/_project.njk',
   tags: ['project'],
+  ogImageKey: 'projects',
   hasToc: true,
   briefAbstract: false,
   tocHasTitle: true,
@@ -19,17 +20,6 @@
       return {
         description: abstract && abstract,
       };
-    },
-    og: function ({ title, slug }) {
-      let slugged = slug;
-      if (!slug) {
-        slugged = this.slugify(title);
-      }
-      const ogTargetUrl = `https://devathmaj.me/opengraph/projects/${slugged}`;
-      const ogScreenshotUrl = `https://v1.screenshot.11ty.dev/${encodeURIComponent(
-        ogTargetUrl
-      )}/opengraph`;
-      return ogScreenshotUrl;
     },
     footerLinks: (data) => [
       ...data.footerLinks,

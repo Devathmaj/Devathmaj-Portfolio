@@ -10,7 +10,6 @@ import {
   readTime,
   toISOString,
   canonicalUrl,
-  opengraphPermalink,
   getProjectNeighbors,
   getProjectStack,
   getTechIcon,
@@ -83,7 +82,6 @@ export default async function (eleventyConfig) {
   eleventyConfig.addFilter('humanReadableDate', humanReadableDate);
   eleventyConfig.addFilter('toISOString', toISOString);
   eleventyConfig.addFilter('canonicalUrl', canonicalUrl);
-  eleventyConfig.addFilter('opengraphPermalink', opengraphPermalink);
   eleventyConfig.addFilter('getProjectNeighbors', getProjectNeighbors);
   eleventyConfig.addFilter('getProjectStack', getProjectStack);
   eleventyConfig.addFilter('getTechIcon', getTechIcon);

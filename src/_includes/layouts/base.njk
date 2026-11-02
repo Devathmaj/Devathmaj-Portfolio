@@ -2,6 +2,14 @@
 {% if title %}
     {% set pageTitle = title + ' | ' + pageTitle %}
 {% endif %}
+{# Preview images are shared by section: projects, about, contact, and the
+   default for everything else. The version query busts crawler caches when the
+   artwork is replaced. #}
+{% set socialTitle = meta.title or pageTitle %}
+{% set socialDescription = meta.description or "Devathmaj's Portfolio — Software Engineering, Backend Development and Full-Stack Applications, with a focus on Python, FastAPI, React and AI-driven solutions." %}
+{% set previewKey = ogImageKey or 'default' %}
+{% set preview = site.ogImage[previewKey] or site.ogImage.default %}
+{% set socialImage = site.ogImage.baseUrl + preview.file + '?v=' + site.ogImage.version %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -44,21 +52,27 @@
     <meta name="theme-color" content="#2a2722" />
     <meta name="generator" content="eleventy">
 
+    <meta property="og:site_name" content="{{ site.baseTitle }}">
     <meta property="og:url" content="https://devathmaj.me{{ canonical }}">
     <meta property="og:type" content="website">
-    {% if meta.title %}
-    <meta property="og:title" content="{{ meta.title }}">
-    {% else %}
-    <meta property="og:title" content="{{ pageTitle }}">
-    {% endif %}
-    {% if meta.description %}
-    <meta property="og:description" content="{{ meta.description }}">
-    {% else %}
-    <meta property="og:description" content="Devathmaj's Portfolio — Software Engineering, Backend Development and Full-Stack Applications, with a focus on Python, FastAPI, React and AI-driven solutions.">
-    {% endif %}
-    {% if og %}
-        <meta property="og:image" content="{{ og }}">
-    {% endif %}
+    <meta property="og:title" content="{{ socialTitle }}">
+    <meta property="og:description" content="{{ socialDescription }}">
+    <meta property="og:image" content="{{ socialImage }}">
+    <meta property="og:image:url" content="{{ socialImage }}">
+    <meta property="og:image:secure_url" content="{{ socialImage }}">
+    <meta property="og:image:type" content="{{ site.ogImage.type }}">
+    <meta property="og:image:width" content="{{ site.ogImage.width }}">
+    <meta property="og:image:height" content="{{ site.ogImage.height }}">
+    <meta property="og:image:alt" content="{{ preview.alt }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ socialTitle }}">
+    <meta name="twitter:description" content="{{ socialDescription }}">
+    <meta name="twitter:image" content="{{ socialImage }}">
+    <meta name="twitter:image:src" content="{{ socialImage }}">
+    <meta name="twitter:image:alt" content="{{ preview.alt }}">
+    {# Legacy tags still read by some aggregators and bookmark cards. #}
+    <meta name="thumbnail" content="{{ socialImage }}">
+    <link rel="image_src" href="{{ socialImage }}">
 
     {% if page.url === '/' %}
         {# The eager, high-priority hero image is the LCP element. Preloading

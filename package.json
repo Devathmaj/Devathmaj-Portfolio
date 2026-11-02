@@ -20,6 +20,7 @@
     "contact:limiter": "wrangler dev --config contact-rate-limiter/wrangler.toml --local --ip=127.0.0.1 --port=8787 --compatibility-date=2026-10-30",
     "test:contact:local": "node scripts/test-contact-local.js",
     "contact:limiter:check": "wrangler deploy --config contact-rate-limiter/wrangler.toml --dry-run --outdir .cache/contact-limiter",
+    "social:preview": "node scripts/generate-social-preview.js",
     "test:contact": "node --test tests/contact/*.test.js",
     "deploy": "npm run build && wrangler pages deploy _site",
     "postinstall": "node scripts/patch-deps.js && node scripts/prepare-build.js --dev"
@@ -32,6 +33,7 @@
     "dotenv": "^16.4.5",
     "rollup": "^4.28.1",
     "rollup-plugin-glsl": "^1.3.0",
+    "sharp": "^0.33.5",
     "workbox-build": "^7.4.1",
     "wrangler": "^4.0.0"
   },

@@ -1,5 +1,28 @@
 {
   "baseTitle": "Devathmaj A Kaliyathan",
+  "ogImage": {
+    "baseUrl": "https://devathmaj.me/meta/",
+    "type": "image/png",
+    "width": 1200,
+    "height": 630,
+    "version": "20261102",
+    "default": {
+      "file": "devathmaj-portfolio-preview-1200x630.png",
+      "alt": "Devathmaj A Kaliyathan — Software Engineer portfolio preview"
+    },
+    "projects": {
+      "file": "devathmaj-project-preview-1200x630.png",
+      "alt": "Devathmaj A Kaliyathan — Projects"
+    },
+    "about": {
+      "file": "devathmaj-about-preview-1200x630.png",
+      "alt": "Devathmaj A Kaliyathan — About"
+    },
+    "contact": {
+      "file": "devathmaj-contact-preview-1200x630.png",
+      "alt": "Devathmaj A Kaliyathan — Contact"
+    }
+  },
   "nav": [
     {
       "title": "SELF",
