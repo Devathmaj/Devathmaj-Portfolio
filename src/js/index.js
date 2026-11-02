@@ -80,6 +80,8 @@ let imageShuffles = [];
 let quoteShuffle = null;
 let vinylPlayer = null;
 let certificateStack = null;
+let contactFormController = null;
+let contactMountToken = null;
 let vinylMountCleanup = null;
 let footerShader = null;
 let footerMountCleanup = null;
@@ -327,11 +329,13 @@ Happy exploring!
         });
     }
     if (document.querySelector('.contact-form')) {
+      const form = document.querySelector('.contact-form');
+      const token = {};
+      contactMountToken = token;
       import('./ContactForm')
         .then(({ default: ContactForm }) => {
-          const contactForm = document.querySelector('.contact-form');
-          if (contactForm?.isConnected) {
-            new ContactForm(contactForm);
+          if (contactMountToken === token && form.isConnected) {
+            contactFormController = new ContactForm(form);
           }
         })
         .catch((error) => {
@@ -428,6 +432,9 @@ Happy exploring!
     syncVinylDock();
   }
   onLeave() {
+    contactMountToken = null;
+    contactFormController?.destroy();
+    contactFormController = null;
     clearLazyMounts();
     destroyVinylPlayer();
     destroyImageShuffles();

@@ -55,27 +55,27 @@
             <form class="contact-form" id="contactForm" aria-labelledby="contact-form-title">
                 <div class="form-row">
                     <div class="form-group">
-                        <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name" required>
+                        <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name" maxlength="100" required>
                         <label for="name">Name</label>
                     </div>
                     <div class="form-group">
-                        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" maxlength="254" required>
                         <label for="email">Email</label>
                     </div>
                 </div>
                 <div class="form-group form-group--full">
-                    <input type="text" id="subject" name="subject" placeholder="Project inquiry" required>
+                    <input type="text" id="subject" name="subject" placeholder="Project inquiry" maxlength="150" required>
                     <label for="subject">Subject</label>
                 </div>
                 <div class="form-group form-group--full">
-                    <textarea id="message" name="message" placeholder="Tell me about your project..." required></textarea>
+                    <textarea id="message" name="message" placeholder="Tell me about your project..." maxlength="5000" required></textarea>
                     <label for="message">Message</label>
                 </div>
                 <div class="honeypot" aria-hidden="true">
                     <input type="text" name="website" tabindex="-1" autocomplete="off">
                 </div>
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAAFwSDW2gb3WgbrG7"></div>
-                <button type="submit" class="submit-btn">Send message</button>
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAAFwSDW2gb3WgbrG7" data-action="contact"></div>
+                <button type="submit" class="submit-btn" disabled>Send message</button>
                 <div class="success-message" id="successMessage" role="status" aria-live="polite"></div>
             </form>
         </div>

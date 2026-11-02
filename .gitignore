@@ -4,17 +4,19 @@ _site
 
 # Local-only backups, restored builds and regenerable state
 /backups/
+/docs/
 
 # Local Cloudflare/Wrangler state
 .wrangler
-.dev.vars
+.dev.vars*
+!.dev.vars.example
 .cache
 .env
 .env.*
 !.env.example
 
 # Generated build identity shared by Cloudflare Functions
-/functions/_shared/
+/functions/_shared/build.js
 
 # Editor and agent tooling
 /.vscode/

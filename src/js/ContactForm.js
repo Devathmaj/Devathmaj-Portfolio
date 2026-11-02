@@ -1,50 +1,13 @@
-import { apiFetch } from './api/client';
+import { apiFetch } from './api/client.js';
 
 const CONTACT_ENDPOINT = '/api/contact';
 const TURNSTILE_SITE_KEY = '0x4AAAAAAFwSDW2gb3WgbrG7';
 
-const RATE_LIMIT_MAX = 3;
-const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
-const RATE_LIMIT_KEY = 'contact_form_submissions';
-
 let turnstileLoader = null;
 let themeListener = null;
-
-function getRateLimitData() {
-  try {
-    const raw = localStorage.getItem(RATE_LIMIT_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function isRateLimited() {
-  const now = Date.now();
-  const timestamps = getRateLimitData().filter(
-    (ts) => now - ts < RATE_LIMIT_WINDOW_MS,
-  );
-
-  try {
-    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(timestamps));
-  } catch {
-    return false;
-  }
-
-  return timestamps.length >= RATE_LIMIT_MAX;
-}
-
-function recordSubmission() {
-  const timestamps = getRateLimitData();
-  timestamps.push(Date.now());
-
-  try {
-    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(timestamps));
-  } catch {
-    // Storage can be unavailable in private or restricted browsing contexts.
-  }
-}
+const controllers = new WeakMap();
+// Keep only a digest and UUID in tab storage, never the message or email.
+const PENDING_KEY = 'contact_pending_submission';
 
 function loadTurnstile() {
   if (window.turnstile) return Promise.resolve(window.turnstile);
@@ -57,9 +20,11 @@ function loadTurnstile() {
       script.async = true;
       script.defer = true;
       script.addEventListener('load', () => resolve(window.turnstile));
-      script.addEventListener('error', () =>
-        reject(new Error('turnstile_failed')),
-      );
+      script.addEventListener('error', () => {
+        turnstileLoader = null;
+        script.remove();
+        reject(new Error('turnstile_failed'));
+      });
       document.head.append(script);
     });
   }
@@ -69,12 +34,18 @@ function loadTurnstile() {
 
 export default class ContactForm {
   constructor(form) {
+    if (controllers.has(form)) return controllers.get(form);
+    controllers.set(form, this);
     this.form = form;
     this.submitBtn = form.querySelector('.submit-btn');
     this.status = form.querySelector('#successMessage');
     this.turnstileContainer = form.querySelector('.cf-turnstile');
     this.widgetId = null;
     this.statusTimer = null;
+    this.busy = false;
+    this.destroyed = false;
+    this.sessionReady = false;
+    this.pending = null;
 
     this.onSubmit = this.onSubmit.bind(this);
     this.form.addEventListener('submit', this.onSubmit);
@@ -89,6 +60,66 @@ export default class ContactForm {
     window.addEventListener('keypress', themeListener);
 
     this.mountTurnstile();
+    this.initializeSession();
+  }
+
+  async initializeSession() {
+    if (this.sessionPromise) return this.sessionPromise;
+    this.submitBtn.disabled = true;
+    this.sessionPromise = (async () => {
+      try {
+        const response = await apiFetch(CONTACT_ENDPOINT, {
+          method: 'GET', credentials: 'same-origin', cache: 'no-store',
+          signal: AbortSignal.timeout(15000),
+        });
+        this.sessionReady = response.ok && (await response.json()).ok === true;
+        if (!response.ok) this.showStatus(response.status === 429
+          ? this.retryMessage(response)
+          : 'Unable to prepare the form. Please try again in a moment.');
+      } catch {
+        this.sessionReady = false;
+        this.showStatus('Unable to prepare the form. Check your connection and try again.');
+      } finally {
+        this.sessionPromise = null;
+        if (!this.destroyed && !this.busy) this.submitBtn.disabled = false;
+      }
+      return this.sessionReady;
+    })();
+    return this.sessionPromise;
+  }
+
+  retryMessage(response) {
+    const seconds = Number(response.headers.get('Retry-After'));
+    return seconds > 0 && Number.isFinite(seconds)
+      ? `Too many attempts. Please try again in ${Math.ceil(seconds / 60)} minute(s).`
+      : 'Too many attempts. Please try again later.';
+  }
+
+  async submissionKey(fields) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(fields)));
+    const fingerprint = Array.from(new Uint8Array(digest), (v) => v.toString(16).padStart(2, '0')).join('');
+    let pending = this.pending;
+    try { pending ||= JSON.parse(sessionStorage.getItem(PENDING_KEY)); } catch { /* Optional tab persistence. */ }
+    if (pending?.fingerprint === fingerprint) {
+      // Resend retains idempotency keys for 24h. Do not silently resend an old ambiguous attempt.
+      if (Date.now() - pending.createdAt > 23 * 60 * 60 * 1000) throw new Error('retry_expired');
+    } else {
+      pending = { fingerprint, id: crypto.randomUUID(), createdAt: Date.now() };
+    }
+    this.pending = pending;
+    try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending)); } catch { /* In-memory fallback. */ }
+    return pending.id;
+  }
+
+  destroy() {
+    this.destroyed = true;
+    this.form.removeEventListener('submit', this.onSubmit);
+    window.removeEventListener('keypress', this.onThemeToggle);
+    if (themeListener === this.onThemeToggle) themeListener = null;
+    window.clearTimeout(this.statusTimer);
+    if (window.turnstile && this.widgetId !== null) window.turnstile.remove(this.widgetId);
+    this.widgetId = null;
+    controllers.delete(this.form);
   }
 
   remountTurnstile() {
@@ -110,15 +141,17 @@ export default class ContactForm {
 
     try {
       const turnstile = await loadTurnstile();
-      if (!this.turnstileContainer.isConnected || this.widgetId !== null) {
+      if (this.destroyed || !this.turnstileContainer.isConnected || this.widgetId !== null) {
         return;
       }
 
       const compact = window.matchMedia('(max-width: 379px)').matches;
       this.widgetId = turnstile.render(this.turnstileContainer, {
-        sitekey: TURNSTILE_SITE_KEY,
+        sitekey: this.turnstileContainer.dataset.sitekey || TURNSTILE_SITE_KEY,
+        action: 'contact',
         theme: document.body.classList.contains('dark') ? 'dark' : 'light',
         size: compact ? 'compact' : 'normal',
+        'expired-callback': () => this.resetTurnstile(),
       });
     } catch (error) {
       console.error('Turnstile failed to load', error);
@@ -132,7 +165,7 @@ export default class ContactForm {
   }
 
   showStatus(message) {
-    if (!this.status) return;
+    if (!this.status || this.destroyed) return;
 
     window.clearTimeout(this.statusTimer);
     this.status.textContent = message;
@@ -144,15 +177,16 @@ export default class ContactForm {
 
   async onSubmit(event) {
     event.preventDefault();
+    if (this.busy || this.destroyed) return;
+    this.busy = true;
 
     const submitBtn = this.submitBtn;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
 
     try {
-      if (isRateLimited()) {
-        throw new Error('rate_limited');
-      }
+      if (!this.sessionReady && !await this.initializeSession()) return;
+      if (this.destroyed) return;
 
       const honeypot = this.form.querySelector('input[name="website"]');
       if (honeypot && honeypot.value) {
@@ -169,20 +203,18 @@ export default class ContactForm {
       const formData = new FormData(this.form);
       const name = String(formData.get('name') || '').trim();
       const fromEmail = String(formData.get('email') || '').trim();
-      const phone = String(formData.get('phone') || '').trim();
       const subjectInput = String(formData.get('subject') || '').trim();
       const message = String(formData.get('message') || '').trim();
+      const fields = { name, email: fromEmail, subject: subjectInput, message, website: String(formData.get('website') || '') };
+      const submissionId = await this.submissionKey(fields);
 
       const response = await apiFetch(CONTACT_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        signal: AbortSignal.timeout(30000),
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': submissionId },
         body: JSON.stringify({
-          name: name || 'Website visitor',
-          email: fromEmail,
-          phone,
-          subject: subjectInput,
-          message,
-          website: String(formData.get('website') || ''),
+          ...fields,
           turnstileToken: turnstileResponse.value,
         }),
       });
@@ -197,10 +229,14 @@ export default class ContactForm {
       if (!response.ok) {
         const error = new Error(result?.error || 'send_failed');
         error.status = response.status;
+        error.retryMessage = this.retryMessage(response);
         throw error;
       }
+      if (result?.ok !== true) throw new Error('send_failed');
+      if (this.destroyed) return;
 
-      recordSubmission();
+      this.pending = null;
+      try { sessionStorage.removeItem(PENDING_KEY); } catch { /* Optional persistence. */ }
       this.form.reset();
       this.resetTurnstile();
       submitBtn.textContent = 'Send message';
@@ -208,37 +244,36 @@ export default class ContactForm {
         'Thanks! Your message has been sent. I will get back to you within 24 hours.',
       );
     } catch (error) {
-      console.error('Contact form send failed', error);
+      if (this.destroyed) return;
       this.resetTurnstile();
       submitBtn.textContent = 'Send message';
 
-      if (error.message === 'rate_limited') {
-        const timestamps = getRateLimitData().filter(
-          (ts) => Date.now() - ts < RATE_LIMIT_WINDOW_MS,
-        );
-        const remaining = RATE_LIMIT_MAX - timestamps.length;
-        this.showStatus(
-          remaining > 0
-            ? `Rate limit reached. You have ${remaining} message${remaining !== 1 ? 's' : ''} left today.`
-            : 'Daily message limit reached (3/day). Please try again tomorrow.',
-        );
+      if (error.status === 429) {
+        this.showStatus(error.retryMessage);
+      } else if (error.status === 403) {
+        this.sessionReady = false;
+        if (await this.initializeSession()) this.showStatus('Session refreshed. Please verify and send again.');
+      } else if (error.message === 'retry_expired') {
+        this.showStatus('This earlier attempt is too old to retry safely. Please contact me directly to confirm receipt.');
       } else if (
         error.message === 'honeypot' ||
         error.message === 'turnstile_missing' ||
-        error.message === 'verification_failed' ||
-        error.message === 'verification_unavailable'
+        error.message === 'verification_failed'
       ) {
         this.showStatus('Verification failed. Please refresh and try again.');
-      } else if (error.message === 'invalid_request') {
+      } else if ([400, 413, 415].includes(error.status) || error.message === 'invalid_request') {
         this.showStatus('Please check the form and try again.');
       } else {
         this.showStatus(
-          'send_failed :: transmission error. Try again in a moment.',
+          'Unable to send right now. Your message is still here; please try again in a moment.',
         );
       }
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Send message';
+      this.busy = false;
+      if (!this.destroyed) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send message';
+      }
     }
   }
 }

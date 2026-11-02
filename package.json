@@ -15,7 +15,12 @@
     "postbuild": "node scripts/generate-assets.js",
     "clean": "node -e \"import('node:fs').then(fs => fs.rmSync('_site', { recursive: true, force: true }))\"",
     "prepreview": "node scripts/prepare-build.js --reuse",
-    "preview": "wrangler pages dev _site --port=8788",
+    "preview": "wrangler pages dev _site --port=8788 --ip=127.0.0.1 --compatibility-date=2026-10-30 --do CONTACT_LIMITER=ContactRateLimitShard@portfolio-contact-limiter",
+    "contact:setup": "node scripts/setup-contact-local.js",
+    "contact:limiter": "wrangler dev --config contact-rate-limiter/wrangler.toml --local --ip=127.0.0.1 --port=8787 --compatibility-date=2026-10-30",
+    "test:contact:local": "node scripts/test-contact-local.js",
+    "contact:limiter:check": "wrangler deploy --config contact-rate-limiter/wrangler.toml --dry-run --outdir .cache/contact-limiter",
+    "test:contact": "node --test tests/contact/*.test.js",
     "deploy": "npm run build && wrangler pages deploy _site",
     "postinstall": "node scripts/patch-deps.js && node scripts/prepare-build.js --dev"
   },

@@ -1,4 +1,4 @@
-name = "devathmaj-portfolio"
+name = "devathmaj"
 pages_build_output_dir = "_site"
 compatibility_date = "2026-10-31"
 compatibility_flags = ["nodejs_compat"]
@@ -6,3 +6,24 @@ compatibility_flags = ["nodejs_compat"]
 # Secrets and runtime configuration (RESEND_API_KEY, TURNSTILE_SECRET_KEY,
 # CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL) are set in the Cloudflare Pages dashboard.
 # Local values belong in the git-ignored .dev.vars file.
+
+[vars]
+CONTACT_ALLOWED_ORIGIN = "https://devathmaj.me"
+CONTACT_ALLOWED_HOSTNAME = "devathmaj.me"
+
+[[durable_objects.bindings]]
+name = "CONTACT_LIMITER"
+class_name = "ContactRateLimitShard"
+script_name = "portfolio-contact-limiter"
+
+# Preserve the existing dashboard preview build variable. Non-inheritable
+# bindings/vars are repeated explicitly when overriding a Pages environment.
+[env.preview.vars]
+NODE_VERSION = "22"
+CONTACT_ALLOWED_ORIGIN = "https://devathmaj.me"
+CONTACT_ALLOWED_HOSTNAME = "devathmaj.me"
+
+[[env.preview.durable_objects.bindings]]
+name = "CONTACT_LIMITER"
+class_name = "ContactRateLimitShard"
+script_name = "portfolio-contact-limiter"

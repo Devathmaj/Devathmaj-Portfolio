@@ -12,10 +12,14 @@ npm start        # http://localhost:8080
 npm run build    # one-off production build into _site/
 npm run clean    # remove _site/
 npm run preview  # wrangler pages dev _site --port=8788
-npm run deploy   # build and publish _site to Cloudflare Pages
 ```
 
 Requires Node 20 or newer (developed on Node 22).
+
+Production is GitHub-connected: pushing to `main` deploys the Cloudflare Pages
+project `devathmaj`. Complete the prerequisites in [docs/contact-form.md](docs/contact-form.md)
+before pushing. Do not use the legacy Direct Upload `npm run deploy` helper for
+this deployment workflow.
 
 `postinstall` runs `scripts/patch-deps.js`, which applies the two fixes the
 project originally carried as Bun patches:
@@ -119,13 +123,11 @@ first record.
 - The contact form posts to `/api/contact`, a Cloudflare Pages Function that
   verifies Turnstile and sends the message through Resend. It exists only under
   `wrangler pages dev` or a Cloudflare Pages deployment — not under `npm start`.
-- The contact function needs `TURNSTILE_SECRET_KEY` and `RESEND_API_KEY`.
-  `CONTACT_FROM_EMAIL` and `CONTACT_TO_EMAIL` are optional and default to
-  `Portfolio Devathmaj <onboarding@resend.dev>` and `devathmaj@gmail.com`.
-  Before a sending domain is verified, Resend only allows
-  `onboarding@resend.dev` as the sender and the Resend account owner's address
-  as the recipient. Verify a domain and set `CONTACT_FROM_EMAIL` to an address
-  on it for production.
+- The contact function requires signed sessions, an external SQLite Durable
+  Object limiter, Turnstile verification, and configured Resend credentials,
+  sender and recipient. There are no default email addresses. See
+  [docs/contact-form.md](docs/contact-form.md) for local development, tests,
+  required secrets, independent Worker deployment and the manual WAF rule.
 - `_site-restored/` is the older deployed build, kept locally (git-ignored) for
   comparison with fresh builds.
 
