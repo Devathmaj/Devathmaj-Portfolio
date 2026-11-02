@@ -1,9 +1,9 @@
 export default {
   layers: [
-    { title: 'Data', icon: 'data', heading: 'Start with a solid foundation.', description: 'Schemas, access control and search. My work includes PostgreSQL data models, audit logging and hybrid semantic search with pgvector.', tools: 'PostgreSQL · SQLAlchemy · pgvector · Redis', href: '/projects/confessit/', link: 'Explore ConfessIt' },
-    { title: 'Interface', icon: 'interface', heading: 'Make the complexity usable.', description: 'REST APIs and the interfaces that sit on top of them. I connect React frontends to Python services, including authenticated and real-time experiences.', tools: 'React · TypeScript · FastAPI · WebSockets', href: '/experience/kannur-vision/', link: 'Explore the distribution system' },
-    { title: 'Delivery', icon: 'delivery', heading: 'Build it. Then ship it.', description: 'Containers, cloud deployments and automation. My projects use Docker and Azure, with Key Vault and automated delivery in the stack.', tools: 'Docker · Azure · GitHub Actions · Linux', href: '/projects/voucherbot/', link: 'Explore VoucherBot' },
-    { title: 'Reliability', icon: 'observe', heading: 'Keep the system understandable.', description: 'Systems should be measurable and operable. My focus includes observability, backup automation, configuration management and log comparison.', tools: 'OpenTelemetry · Prometheus · Grafana · Loki', href: '/experience/kerala-vision-broadband-limited/', link: 'Explore the backup platform' },
+    { title: 'Data', icon: 'data', heading: 'Start with a solid foundation.', description: 'Schemas, access control and search. My work includes PostgreSQL data models, audit logging and hybrid semantic search with pgvector.', tools: 'PostgreSQL · SQLAlchemy · pgvector · Redis', href: '/projects/confessit', link: 'Explore ConfessIt' },
+    { title: 'Interface', icon: 'interface', heading: 'Make the complexity usable.', description: 'REST APIs and the interfaces that sit on top of them. I connect React frontends to Python services, including authenticated and real-time experiences.', tools: 'React · TypeScript · FastAPI · WebSockets', href: '/experience/kannur-vision', link: 'Explore the distribution system' },
+    { title: 'Delivery', icon: 'delivery', heading: 'Build it. Then ship it.', description: 'Containers, cloud deployments and automation. My projects use Docker and Azure, with Key Vault and automated delivery in the stack.', tools: 'Docker · Azure · GitHub Actions · Linux', href: '/projects/voucherbot', link: 'Explore VoucherBot' },
+    { title: 'Reliability', icon: 'observe', heading: 'Keep the system understandable.', description: 'Systems should be measurable and operable. My focus includes observability, backup automation, configuration management and log comparison.', tools: 'OpenTelemetry · Prometheus · Grafana · Loki', href: '/experience/kerala-vision-broadband-limited', link: 'Explore the backup platform' },
   ],
   facts: [
     { label: 'Focus', value: 'Backend Engineering · Cloud & DevOps · Automation · AI Integration' },
@@ -22,7 +22,7 @@ export default {
         { name: 'React', icon: 'react', role: 'Build interfaces', heading: 'Turn services into usable screens.', description: 'Components connect application state, user input and API responses. I use React with TypeScript to build the interfaces above my Python services.' },
       ],
       tools: ['Python', 'Flask', 'TypeScript', 'JavaScript', 'JWT', 'RBAC'],
-      href: '/experience/kannur-vision/',
+      href: '/experience/kannur-vision',
       example: 'In practice: distribution management',
     },
     {
@@ -35,7 +35,7 @@ export default {
         { name: 'Redis', icon: 'redis', role: 'Connect live', heading: 'Move messages while they matter.', description: 'Redis pub/sub distributes live chat messages between connections. It complements the persistent database rather than replacing the conversation record.' },
       ],
       tools: ['SQL', 'SQLAlchemy', 'WebSockets', 'MySQL', 'MongoDB', 'Supabase'],
-      href: '/projects/confessit/',
+      href: '/projects/confessit',
       example: 'In practice: ConfessIt',
     },
     {
@@ -48,7 +48,7 @@ export default {
         { name: 'Azure', icon: 'azure', role: 'Deploy', heading: 'Give the application a production home.', description: 'My projects deploy containerized services on Azure. Supporting services include Key Vault for secrets and Content Safety for content moderation.' },
       ],
       tools: ['Linux', 'Nginx', 'AWS', 'Cloudflare Pages', 'Key Vault'],
-      href: '/projects/confessit/',
+      href: '/projects/confessit',
       example: 'In practice: deploying ConfessIt',
     },
     {
@@ -61,7 +61,7 @@ export default {
         { name: 'Grafana', icon: 'grafana', role: 'Understand', heading: 'Make the signals readable.', description: 'Dashboards bring operational signals into a view that can be investigated. Grafana sits alongside Prometheus and Loki in my observability toolkit.' },
       ],
       tools: ['Selenium', 'Prometheus', 'Loki', 'Netmiko', 'Rclone', 'SSH', 'Groq', 'Gemini', 'Azure AI', 'Azure Content Safety'],
-      href: '/experience/kerala-vision-broadband-limited/',
+      href: '/experience/kerala-vision-broadband-limited',
       example: 'In practice: network backup automation',
     },
   ],
@@ -69,7 +69,7 @@ export default {
     {
       title: 'ConfessIt',
       subtitle: 'Anonymous social, gaming & matchmaking platform',
-      href: '/projects/confessit/',
+      href: '/projects/confessit',
       image: '/img/projects/confessit/confessit.png',
       imageAlt: 'The ConfessIt anonymous social platform landing page',
       description:
@@ -88,7 +88,7 @@ export default {
     {
       title: 'VoucherBot',
       subtitle: 'Automated deal discovery & notification system',
-      href: '/projects/voucherbot/',
+      href: '/projects/voucherbot',
       image: '/img/projects/voucherbot/voucherbot.png',
       imageAlt: 'The VoucherBot deal discovery dashboard',
       description:

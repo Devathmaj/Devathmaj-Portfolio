@@ -1,2 +1,21 @@
+# Federation endpoints.
 /.well-known/host-meta* https://fed.brid.gy/.well-known/host-meta:splat 302
 /.well-known/webfinger* https://fed.brid.gy/.well-known/webfinger 302
+
+# Canonical URL normalization.
+# Standalone pages and child routes are emitted as flat .html files, so the
+# extensionless URL is canonical and the trailing-slash variant redirects.
+/about/ /about 308
+/now/ /now 308
+/links/ /links 308
+/contact/ /contact 308
+/certificates/ /certificates 308
+
+# The experience section has no index page; send both variants to the first
+# record in one step.
+/experience/ /experience/kannur-vision 308
+/experience /experience/kannur-vision 308
+
+# Project and experience detail routes never keep a trailing slash.
+/projects/:slug/ /projects/:slug 308
+/experience/:slug/ /experience/:slug 308

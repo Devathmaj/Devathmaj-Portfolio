@@ -1,12 +1,12 @@
 export const DISCOVERY_KEY = 'portfolio:hidden-routes:v1';
 export const HIDDEN_ROUTES = Object.freeze([
-  { id: 'now', path: '/now/', label: 'Now' },
-  { id: 'links', path: '/links/', label: 'Links' },
+  { id: 'now', path: '/now', label: 'Now' },
+  { id: 'links', path: '/links', label: 'Links' },
 ]);
 
 export const routeDiscoveryId = (pathname) => {
   const path = pathname.replace(/\/+$/, '') || '/';
-  return HIDDEN_ROUTES.find((route) => route.path.slice(0, -1) === path)?.id;
+  return HIDDEN_ROUTES.find((route) => route.path === path)?.id;
 };
 
 export function parseDiscoveries(raw) {

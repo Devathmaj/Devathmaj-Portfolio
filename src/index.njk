@@ -47,7 +47,7 @@ meta:
                                 class="experience-row__title-divider{% if not job.titleDivider %} experience-row__title-divider--line{% endif %}">{% if job.titleDivider %}{{ job.titleDivider }}{% endif %}</span><span
                                 class="experience-row__half">{% if job.titleDivider %}{{ job.company.slice(job.titleSplitIndex + job.titleDividerLength) }}{% else %}{{ job.company.slice(job.titleSplitIndex).trimStart() }}{% endif %}</span>
                         </div>
-                        <a class="experience-row__link" href="/experience/{{ job.slug }}/">
+                        <a class="experience-row__link" href="/experience/{{ job.slug }}">
                             <span class="visually-hidden">Read the {{ job.name }} experience</span>
                         </a>
                     </h1>

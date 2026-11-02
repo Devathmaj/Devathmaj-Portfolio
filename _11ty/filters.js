@@ -48,6 +48,32 @@ export const toISOString = (str) => {
   return str.toISOString();
 };
 
+/**
+ * Convert an Eleventy output URL into its public canonical URL.
+ *
+ * Standalone pages and detail routes are emitted as flat `.html` files so
+ * Cloudflare Pages serves them without a trailing slash. Parent section routes
+ * use `index.html` and keep their trailing slash. The 404 document is kept
+ * verbatim because it is not an indexable route.
+ */
+export const canonicalUrl = (url = '/') => {
+  const path = String(url).split(/[?#]/)[0] || '/';
+  if (path === '/404.html') return path;
+  if (path === '/index.html') return '/';
+  if (path.endsWith('/index.html')) return path.slice(0, -'index.html'.length);
+  if (path.endsWith('.html')) return path.slice(0, -'.html'.length);
+  return path;
+};
+
+/** Build the output path for a page's Open Graph image document. */
+export const opengraphPermalink = (url = '/') => {
+  const path = canonicalUrl(url);
+  if (path === '/') return '/opengraph/index.html';
+  return path.endsWith('/')
+    ? `/opengraph${path}index.html`
+    : `/opengraph${path}.html`;
+};
+
 export const getProjectNeighbors = (items, url) => {
   const index = items.findIndex((item) => item.url === url);
 

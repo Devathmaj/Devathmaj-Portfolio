@@ -83,7 +83,7 @@
                         sizes="(min-width: 1000px) 38vw, (min-width: 600px) 84vw, 120vw">
                 </div>
                 <div class="home-about__contact-card">
-                    <a class="home-about__contact-link" href="/contact/">
+                    <a class="home-about__contact-link" href="/contact">
                         <social-icon icon="email" class="home-about__contact-icon"></social-icon>
                         <span>Get in touch</span>
                     </a>
@@ -91,7 +91,7 @@
             </div>
         </div>
         <div class="home-about__footer">
-            <a class="home-about__more" href="/about/">
+            <a class="home-about__more" href="/about">
                 <span class="home-about__more-text">Read more about me</span>
                 <span class="home-about__more-rule" aria-hidden="true"></span>
                 <about-arrow class="home-about__more-arrow"></about-arrow>

@@ -46,7 +46,7 @@
                 </li>
                 <template data-discovery-template="now" webc:keep webc:if="linkGroup.title === 'SELF'">
                     <li class="home-nav__list-item home-nav__now" data-discovery-content="now">
-                        <a class="home-nav__link" href="/now/">
+                        <a class="home-nav__link" href="/now">
                             <span class="home-nav__link-title">Now</span>
                             <span class="home-nav__link-description">— Current focus, hobbies, projects and interests</span>
                         </a>

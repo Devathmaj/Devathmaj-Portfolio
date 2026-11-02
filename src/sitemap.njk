@@ -10,21 +10,21 @@ layout: false
         <loc>{{ siteUrl }}/</loc>
     </url>
 {%- for entry in collections.page %}
-{%- if entry.url != "/now/" and (entry.url | replace("/experience/", "")) == entry.url %}
+{%- if (entry.url | replace("/experience/", "")) == entry.url %}
     <url>
-        <loc>{{ siteUrl }}{{ entry.url }}</loc>
+        <loc>{{ siteUrl }}{{ entry.url | canonicalUrl }}</loc>
     </url>
 {%- endif %}
 {%- endfor %}
 {%- for job in experience %}
     <url>
-        <loc>{{ siteUrl }}/experience/{{ job.slug }}/</loc>
+        <loc>{{ siteUrl }}/experience/{{ job.slug }}</loc>
     </url>
 {%- endfor %}
 {%- for project in collections.project %}
 {%- if project.url %}
     <url>
-        <loc>{{ siteUrl }}{{ project.url }}</loc>
+        <loc>{{ siteUrl }}{{ project.url | canonicalUrl }}</loc>
 {%- if project.data.publishDate %}
         <lastmod>{{ project.data.publishDate }}</lastmod>
 {%- endif %}

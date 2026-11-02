@@ -4,7 +4,7 @@ pagination:
   size: 1
   alias: "currentPage"
 layout: "layouts/og.njk"
-permalink: "/opengraph/{{ currentPage.url }}/index.html"
+permalink: "{{ currentPage.url | opengraphPermalink }}"
 ---
 <header class="header">
     <p class="intro">The personal site and portfolio of a <span class="accent">backend reliability engineer</span></p>

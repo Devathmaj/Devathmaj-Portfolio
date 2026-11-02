@@ -1,6 +1,6 @@
 ﻿export default {
   permalink: function ({ title }) {
-    return `/projects/${this.slugify(title)}/index.html`;
+    return `/projects/${this.slugify(title)}.html`;
   },
   backLink: '/projects/',
   backLinkText: 'All projects',
