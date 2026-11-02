@@ -35,6 +35,20 @@
     
     {% set canonical = page.url | canonicalUrl %}
     <link rel="canonical" href="https://devathmaj.me{{ canonical }}">
+
+    {% if page.url === '/' %}
+    {# Google uses the home page's WebSite node as the preferred site name.
+       Keep the brand name and URL aligned with og:site_name below. #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "{{ site.siteName }}",
+      "alternateName": "Devathmaj AK",
+      "url": "https://devathmaj.me/"
+    }
+    </script>
+    {% endif %}
     
     {# Google Search supports PNG and ICO (not SVG), so the 96x96 PNG is the
        primary declaration. It satisfies Google's recommendation to use an icon
@@ -55,7 +69,7 @@
     <meta name="theme-color" content="#2a2722" />
     <meta name="generator" content="eleventy">
 
-    <meta property="og:site_name" content="{{ site.baseTitle }}">
+    <meta property="og:site_name" content="{{ site.siteName }}">
     <meta property="og:url" content="https://devathmaj.me{{ canonical }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ socialTitle }}">
