@@ -1,0 +1,419 @@
+@use '../abstract/variables' as *;
+@use '../abstract/mixins' as *;
+
+.not-found {
+  --not-found-gutter: clamp(1rem, 4.4vw, 4rem);
+
+  padding-block: 20rem 6rem;
+
+  @include screen(lg) {
+    padding-block-start: 4rem;
+  }
+
+  @include screen(1099px) {
+    padding-block-start: 3rem;
+  }
+
+  ::selection {
+    color: $color-background;
+    background: $color-text;
+  }
+}
+
+/* Masthead ------------------------------------------------------------- */
+
+.not-found__masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  margin-inline: var(--not-found-gutter);
+  padding-block-end: 1rem;
+  border-block-end: 1px solid $color-border-light;
+  color: $color-text-mid;
+  font-family: $font-sans;
+  font-size: 0.625rem;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.not-found__label,
+.not-found__request {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6ch;
+  margin: 0;
+}
+
+.not-found__mark {
+  align-self: center;
+  margin-inline-end: 0.25rem;
+  color: $color-text;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.not-found__route {
+  color: $color-text;
+}
+
+.not-found__slash {
+  color: $color-border-mid;
+}
+
+.not-found__request {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.not-found__request-label {
+  flex: none;
+}
+
+.not-found__request-path {
+  color: $color-text;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
+/* Sheet ---------------------------------------------------------------- */
+
+.not-found__sheet {
+  display: grid;
+  gap: 2rem;
+  align-items: end;
+  margin-inline: var(--not-found-gutter);
+  padding-block: clamp(3rem, 7vw, 6rem);
+  border-block-end: 2px solid $color-text;
+
+  @include screen(magazine) {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    column-gap: clamp(2rem, 5vw, 5rem);
+  }
+}
+
+.not-found__figure {
+  margin: 0;
+}
+
+.not-found__code {
+  display: block;
+  color: color-mix(in srgb, var(--color-text) 10%, transparent);
+  font-family: $font-display;
+  font-size: clamp(8rem, 34vw, 26rem);
+  font-weight: 400;
+  line-height: 0.7;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-text-stroke: clamp(2px, 0.3vw, 4.5px) var(--color-text);
+}
+
+.not-found__figure-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-block-start: 1.25rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid $color-border-mid;
+  color: $color-text-mid;
+  font-family: $font-sans;
+  font-size: 0.625rem;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Copy ----------------------------------------------------------------- */
+
+.not-found__copy {
+  padding-block-end: 0.5rem;
+}
+
+.not-found__title {
+  margin: 0 0 1.5rem;
+  font-family: $font-display;
+  font-size: clamp(3.5rem, 6vw, 5.25rem);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.not-found__system {
+  max-inline-size: 22ch;
+  margin: 0 0 1.25rem;
+  font-family: $font-serif-display;
+  font-size: clamp(1.5rem, 2.2vw, 1.875rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.not-found__body {
+  max-inline-size: 42ch;
+  margin: 0;
+  color: $color-text-mid;
+  font-size: 1rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.not-found__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6ch;
+  max-inline-size: 100%;
+  margin-block-start: 2rem;
+  padding: 0.95rem 1.5rem;
+  transition: color 160ms $ease-out-editorial,
+    background-color 160ms $ease-out-editorial,
+    transform 120ms $ease-out-editorial;
+  text-decoration: none;
+  text-transform: uppercase;
+  border: 1px solid $color-text;
+  border-radius: $bdrs;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: $color-background;
+  background-color: $color-text;
+
+  @include screen(sm) {
+    padding: 1rem 2.5rem;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: $color-text;
+      background-color: transparent;
+    }
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-duration: 0s;
+  }
+}
+
+/* Index ---------------------------------------------------------------- */
+
+.not-found__index {
+  margin-inline: var(--not-found-gutter);
+  padding-block: clamp(3rem, 6vw, 5rem) 0;
+}
+
+.not-found__index-title {
+  margin: 0 0 1rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid $color-text;
+  color: $color-text-mid;
+  font-family: $font-sans;
+  font-size: 0.625rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.not-found__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include screen(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
+  }
+
+  @include screen(magazine) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.not-found__entry {
+  display: grid;
+  align-items: center;
+  padding-block: 1rem;
+  column-gap: 1rem;
+  grid-template-areas:
+    'index name arrow'
+    'index note arrow';
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  text-decoration: none;
+  border-block-end: 1px solid $color-border-light;
+}
+
+.not-found__entry-index {
+  grid-area: index;
+  align-self: start;
+  padding-block-start: 0.2rem;
+  color: $color-text-mid;
+  font-family: $font-sans;
+  font-size: 0.625rem;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.not-found__entry-name {
+  grid-area: name;
+  font-family: $font-serif-display;
+  font-size: clamp(1.35rem, 1.6vw, 1.6rem);
+  line-height: 1.1;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 calc(100% - 1px);
+  background-size: 0% 1px;
+  transition: background-size 180ms $ease-out-editorial;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-duration: 0s;
+  }
+}
+
+.not-found__entry-note {
+  grid-area: note;
+  margin-block-start: 0.2rem;
+  color: $color-text-mid;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.not-found__entry-arrow {
+  grid-area: arrow;
+  align-self: center;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 160ms $ease-out-editorial;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-duration: 0s;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .not-found__entry:hover {
+    .not-found__entry-name {
+      background-size: 100% 1px;
+    }
+
+    .not-found__entry-arrow {
+      transform: translateX(0.2em);
+    }
+  }
+}
+
+.not-found__entry:focus-visible {
+  .not-found__entry-name {
+    background-size: 100% 1px;
+  }
+
+  .not-found__entry-arrow {
+    transform: translateX(0.2em);
+  }
+}
+
+/* Footnote ------------------------------------------------------------- */
+
+.not-found__footnote {
+  margin-inline: var(--not-found-gutter);
+  padding-block: 2rem 0;
+  color: $color-text-mid;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+
+  p {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6ch;
+    margin: 0;
+  }
+
+  a {
+    color: $color-text;
+    text-underline-offset: 0.18em;
+  }
+}
+
+.not-found__footnote-mark {
+  flex: none;
+  color: $color-text-mid;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.not-found a:focus {
+  outline-color: $color-text;
+}
+
+/* Entrance ------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .not-found__code {
+    animation: not-found-reveal 700ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+  }
+
+  .not-found__copy > :not(.not-found__action) {
+    animation: not-found-rise 520ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+  }
+
+  .not-found__copy > .not-found__action {
+    animation: not-found-fade 400ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+  }
+
+  .not-found__copy > :nth-child(2) {
+    animation-delay: 70ms;
+  }
+
+  .not-found__copy > :nth-child(3) {
+    animation-delay: 130ms;
+  }
+
+  .not-found__copy > :nth-child(4) {
+    animation-delay: 190ms;
+  }
+}
+
+@keyframes not-found-reveal {
+  from {
+    clip-path: inset(-4% 100% -4% 0);
+  }
+
+  to {
+    clip-path: inset(-4% -2% -4% 0);
+  }
+}
+
+@keyframes not-found-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes not-found-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

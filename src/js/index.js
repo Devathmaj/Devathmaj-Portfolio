@@ -194,6 +194,12 @@ Happy exploring!
         .catch((error) => console.error('Failed to initialise the About page:', error));
     }
 
+    if (document.querySelector('[data-not-found-path]')) {
+      import('./NotFound')
+        .then(({ default: initNotFound }) => initNotFound())
+        .catch((error) => console.error('Failed to initialise the 404 page:', error));
+    }
+
     const quoteStack = document.querySelector('[data-quote-stack]');
     if (quoteStack) quoteShuffle = new QuoteShuffle(quoteStack);
 

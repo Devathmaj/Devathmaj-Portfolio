@@ -1,0 +1,86 @@
+---
+title: 'Page not found'
+permalink: /404.html
+eleventyExcludeFromCollections: true
+noindex: true
+backLink: '/'
+backLinkText: 'Home'
+meta:
+    description: 'The page you requested could not be found in the archive.'
+---
+<main class="not-found">
+    <header class="not-found__masthead">
+        <p class="not-found__label">
+            <span class="not-found__mark" aria-hidden="true">✳</span>
+            <span class="not-found__route">Error 404</span>
+            <span class="not-found__slash" aria-hidden="true">/</span>
+            <span class="not-found__note">Missing record</span>
+        </p>
+        <p class="not-found__request">
+            <span class="not-found__request-label">Requested</span>
+            <span class="not-found__request-path" data-not-found-path>unknown path</span>
+        </p>
+    </header>
+
+    <section class="not-found__sheet" aria-labelledby="not-found-title">
+        <figure class="not-found__figure" aria-hidden="true">
+            <span class="not-found__code">404</span>
+            <figcaption class="not-found__figure-caption">
+                <span>Record / missing</span>
+                <span>Filed / nowhere</span>
+            </figcaption>
+        </figure>
+
+        <div class="not-found__copy">
+            <h1 class="not-found__title" id="not-found-title">Page not found</h1>
+            <p class="not-found__system">This record is missing from the archive.</p>
+            <p class="not-found__body">The address may have changed, or the link was never filed. The shelf is empty, but the rest of the collection is open.</p>
+            <a class="not-found__action" href="/">Return home <span aria-hidden="true">→</span></a>
+        </div>
+    </section>
+
+    <nav class="not-found__index" aria-labelledby="not-found-index-title">
+        <h2 class="not-found__index-title" id="not-found-index-title">Continue elsewhere</h2>
+        <ul class="not-found__list" role="list">
+            <li>
+                <a class="not-found__entry" href="/projects/">
+                    <span class="not-found__entry-index" aria-hidden="true">01</span>
+                    <span class="not-found__entry-name">Projects</span>
+                    <span class="not-found__entry-note">Selected work and case studies</span>
+                    <span class="not-found__entry-arrow" aria-hidden="true">→</span>
+                </a>
+            </li>
+            <li>
+                <a class="not-found__entry" href="/about">
+                    <span class="not-found__entry-index" aria-hidden="true">02</span>
+                    <span class="not-found__entry-name">About</span>
+                    <span class="not-found__entry-note">The person behind the archive</span>
+                    <span class="not-found__entry-arrow" aria-hidden="true">→</span>
+                </a>
+            </li>
+            <li>
+                <a class="not-found__entry" href="/experience">
+                    <span class="not-found__entry-index" aria-hidden="true">03</span>
+                    <span class="not-found__entry-name">Experience</span>
+                    <span class="not-found__entry-note">Roles and what they taught me</span>
+                    <span class="not-found__entry-arrow" aria-hidden="true">→</span>
+                </a>
+            </li>
+            <li>
+                <a class="not-found__entry" href="/contact">
+                    <span class="not-found__entry-index" aria-hidden="true">04</span>
+                    <span class="not-found__entry-name">Contact</span>
+                    <span class="not-found__entry-note">Open a direct channel</span>
+                    <span class="not-found__entry-arrow" aria-hidden="true">→</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <footer class="not-found__footnote">
+        <p>
+            <span class="not-found__footnote-mark" aria-hidden="true">✳</span>
+            <span>If a link on this site sent you here, <a href="mailto:devathmaj@gmail.com">tell me</a> and I'll repair the record.</span>
+        </p>
+    </footer>
+</main>
