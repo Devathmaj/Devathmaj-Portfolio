@@ -4,7 +4,6 @@ _site
 
 # Local-only backups, restored builds and regenerable state
 /backups/
-/docs/
 
 # Local Cloudflare/Wrangler state
 .wrangler
