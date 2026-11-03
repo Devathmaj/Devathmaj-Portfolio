@@ -9,10 +9,8 @@ meta:
 ---
 {% from './_includes/project-block.njk' import projectBlock %}
 
-{% renderTemplate 'webc', {site: site, profile: profile} %}
-<home-hero :@site="site"></home-hero>
-<home-about :@profile="profile"></home-about>
-{% endrenderTemplate %}
+{% include 'components/home-hero.njk' %}
+{% include 'components/home-about.njk' %}
 <section class="home-projects">
     <h2 class="home-projects__title">Projects</h2>
     <ul class="project-list" role="list">
@@ -69,9 +67,7 @@ meta:
         <h2 class="home-listening__title">A little room for something beautiful.</h2>
     </header>
     <div class="home-listening__pair">
-        {% renderTemplate 'webc' %}
-        <home-letter></home-letter>
-        {% endrenderTemplate %}
+        {% include 'components/home-letter.njk' %}
         {% include 'vinyl-player.njk' %}
     </div>
 </div>

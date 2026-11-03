@@ -53,7 +53,7 @@ and drops, and actual audio. Pick a pressing, hit play, stay a while.
 
 ## What the site is made of
 
-Eleventy 3 with Nunjucks and WebC for the pages, Sass for the styling, Rollup for
+Eleventy 3 with Nunjucks for the pages, Sass for the styling, Rollup for
 the JS, and Cloudflare Pages for hosting — plus a Pages Function for the contact
 form because a static site still deserves a working inbox.
 

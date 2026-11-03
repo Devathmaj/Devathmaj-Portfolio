@@ -1,3 +1,4 @@
+<home-hero>
 <section class="home-hero">
     <hgroup>
         <h1 class="home-hero__title">
@@ -32,19 +33,20 @@
             alt="ClassSync dashboard screenshot"
             sizes="(min-width: 900px) 50vw, (min-width: 600px) 40vw, 60vw" loading="lazy" fetchpriority="low" />
     </div>
-    <home-marquee class="home-hero__marquee"></home-marquee>
+    {% include 'components/home-marquee.njk' %}
     <nav class="home-nav">
-        <template webc:nokeep webc:for="linkGroup of site.nav">
-            <p class="home-nav__meta-title" @text="linkGroup.title">{{ linkGroup.title }}</p>
+        {%- for linkGroup in site.nav %}
+            <p class="home-nav__meta-title">{{ linkGroup.title }}</p>
             <ul class="home-nav__list" role="list">
-                <li class="home-nav__list-item" webc:for="link of linkGroup.links" webc:if="!link.footerOnly">
-                    <a class="home-nav__link" :href="link.url">
-                        <span class="home-nav__link-title" @text="link.text"></span>
-                        <span class="home-nav__link-description" inert @text="`— ${link.description}`">— {{
-                            link.description
-                            }}</span></a>
+                {%- for link in linkGroup.links %}{% if not link.footerOnly %}
+                <li class="home-nav__list-item">
+                    <a class="home-nav__link" href="{{ link.url }}">
+                        <span class="home-nav__link-title">{{ link.text }}</span>
+                        <span class="home-nav__link-description" inert>— {{ link.description }}</span></a>
                 </li>
-                <template data-discovery-template="now" webc:keep webc:if="linkGroup.title === 'SELF'">
+                {%- endif %}{% endfor %}
+                {%- if linkGroup.title === 'SELF' %}
+                <template data-discovery-template="now">
                     <li class="home-nav__list-item home-nav__now" data-discovery-content="now">
                         <a class="home-nav__link" href="/now">
                             <span class="home-nav__link-title">Now</span>
@@ -52,8 +54,10 @@
                         </a>
                     </li>
                 </template>
+                {%- endif %}
             </ul>
-        </template>
+        {%- endfor %}
     </nav>
 </section>
-<script src="/js/rotation-init.js" webc:keep></script>
+<script src="/js/rotation-init.js"></script>
+</home-hero>

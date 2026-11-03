@@ -19,10 +19,10 @@
             </div>
         </div>
     </div>
-    <p class="page-nav__tagline">(the personal site & portfolio of <span>Devathmaj A Kaliyathan</span>)</p>
+    <p class="page-nav__tagline">(the personal site &amp; portfolio of <span>Devathmaj A Kaliyathan</span>)</p>
     <div class="page-nav__utility">
-        <a :href="backLink || '/'" class="page-nav__back-link">
-            ← <span @text="backLinkText || 'Back to home'"></span>
+        <a href="{{ backLink or '/' }}" class="page-nav__back-link">
+            ← <span>{{ backLinkText or 'Back to home' }}</span>
         </a>
     </div>
 </nav>

@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Mondays 00:30 UTC — matches the Dependabot window (06:00 Asia/Kolkata).
+    - cron: "30 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # --ignore-scripts: this job only reads the lockfile and package
+      # signatures, so the postinstall patches are unnecessary here.
+      - name: Install
+        run: npm ci --ignore-scripts
+
+      # The gate. Fails the job on any high or critical advisory in the tree
+      # that actually ships. Currently at zero.
+      - name: Audit production dependencies (fail on high or critical)
+        run: npm audit --omit=dev --audit-level=high
+
+      # Same threshold for the whole tree: build tooling is where every
+      # advisory in this project has landed so far. The three accepted
+      # low-severity deepmerge findings do not trip this — do not switch to a
+      # plain `npm audit`, which exits non-zero on any severity and would make
+      # CI permanently red.
+      - name: Audit all dependencies (fail on high or critical)
+        run: npm audit --audit-level=high
+
+      - name: Verify registry signatures and provenance
+        run: npm audit signatures
+
+      - name: Write audit summary
+        if: always()
+        run: |
+          npm audit --json > audit.json || true
+          REPORT="$(node .github/scripts/audit-summary.mjs audit.json)"
+          echo "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          echo "$REPORT"
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # Runs postinstall: the Taxi patch plus the build-id stamp.
+      - name: Install
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+
+      - name: Contact stack tests
+        run: npm run test:contact

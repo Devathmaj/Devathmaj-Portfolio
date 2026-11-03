@@ -48,14 +48,9 @@ The Function does not exist under `npm start`.
 
 ## Dependency patches
 
-Two packages need a small source fix that upstream hasn't shipped. They're
-applied by `scripts/patch-deps.js` on `postinstall`, replacing the Bun patches
-the project originally used. Both are idempotent and detect already-patched
-files.
-
-**`@11ty/eleventy-plugin-webc@0.11.2`** — Eleventy 3 renders some component
-contexts without `data.page.url`, but the plugin calls Eleventy's CSS/JS bundle
-helpers unconditionally. The patch wraps that block in `if (data.page.url)`.
+One package needs a small source fix that upstream hasn't shipped. It's applied
+by `scripts/patch-deps.js` on `postinstall`, replacing the Bun patch the project
+originally used. The patch is idempotent and detects an already-patched file.
 
 **`@unseenco/taxi@1.8.0`** — Taxi strips trailing slashes, turning `/` into an
 empty pathname, so route transitions leaving the homepage never match. The patch
@@ -93,9 +88,8 @@ functions/              Pages Functions (contact API, middleware, build stamp)
 scripts/                patches, build id, asset generation, contact tooling
 tests/contact/          node:test suites for the contact stack
 src/
-  _components/          WebC components
   _data/                site content and configuration
-  _includes/            layouts and shared Nunjucks partials
+  _includes/            layouts, shared partials and component macros
   scss/                 styles
   js/                   client runtime (router, transitions, modules, worker)
   content/              Markdown: projects, now, speaking, additional-work
@@ -103,6 +97,24 @@ src/
   img/ music/ fonts/ certificate/ resume/ meta/
   _headers _redirects robots.txt
 ```
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on pushes to `main`, on every pull request,
+weekly on a schedule, and on demand. It has two jobs:
+
+- **Dependency audit** — installs with `npm ci --ignore-scripts`, then fails on
+  any high or critical advisory (`npm audit --omit=dev --audit-level=high`, and
+  the same threshold across the whole tree), verifies registry signatures and
+  provenance, and publishes an audit table to the job summary.
+- **Build and test** — a full `npm ci`, `npm run build`, and
+  `npm run test:contact`, so Dependabot pull requests are validated before
+  merge.
+
+Note the threshold. A plain `npm audit` exits non-zero on any severity, and the
+three accepted low-severity `deepmerge` findings (see
+[Troubleshooting](troubleshooting.md)) would leave CI permanently red. Keep the
+`--audit-level=high` flag when editing the workflow.
 
 ## Environment and secrets
 

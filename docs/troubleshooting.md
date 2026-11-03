@@ -5,22 +5,13 @@ Symptom first, cause second. Most of these have shown up at least once.
 ## Install and patches
 
 **`npm install` warns that `patch-deps` couldn't find a target**
-The packages weren't installed yet (or a version bump moved the files). Run
-`npm install` again; if it persists, confirm the installed versions of
-`@11ty/eleventy-plugin-webc` (0.11.2) and `@unseenco/taxi` (1.8.0), then run
-`node scripts/patch-deps.js` manually and read which check failed.
-
-**Build fails inside WebC with `data.page.url` / CSS bundle errors**
-The WebC patch didn't apply. Re-run:
-
-```bash
-node scripts/patch-deps.js
-```
-
-The patch is idempotent and prints whether each target was already patched.
+The package wasn't installed yet (or a version bump moved the file). Run
+`npm install` again; if it persists, confirm the installed version of
+`@unseenco/taxi` (1.8.0), then run `node scripts/patch-deps.js` manually and read
+which check failed.
 
 **Clicking a link from the homepage does a full page reload instead of a transition**
-Same cause, other package: the Taxi route patch is missing. Re-run
+The Taxi route patch is missing. Re-run
 `scripts/patch-deps.js`; the patched file is
 `node_modules/@unseenco/taxi/src/RouteStore.js` and should contain
 `currentUrlPathname`.
@@ -119,6 +110,16 @@ A loop implies the three build-id sources disagree (usually a stale
 `_headers` shipped with the build.
 
 ## Tooling
+
+**`npm audit` reports three low-severity findings after a clean install**
+They are one advisory (CVE-2026-93753, `deepmerge` prototype poisoning),
+counted once per node that carries it: `deepmerge`, `@rollup/plugin-node-resolve`
+and `workbox-build`. Every `deepmerge` release up to and including the latest
+(`4.3.1`, published 2023) is affected, so there is no patched version. npm's
+offered fix is a downgrade that breaks the build. The only call site is
+`deepMerge({}, defaults)` inside `@rollup/plugin-node-resolve`, merging a
+hard-coded literal with no untrusted input, so the finding is accepted. CI gates
+on `--audit-level=high` and deliberately does not fail on these.
 
 **Sass compiles but stylelint complains about class names**
 Selectors must match the BEM pattern in `.stylelintrc.json`. Logical properties

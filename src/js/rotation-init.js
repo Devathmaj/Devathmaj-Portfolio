@@ -75,8 +75,8 @@ const initializeRotations = () => {
 };
 
 initializeRotations();
-// Catch roots inserted after this script runs (for example WebC rendering or
-// a router navigation) without rescanning them again.
+// Catch roots inserted after this script runs (for example a router
+// navigation) without rescanning them again.
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeRotations, { once: true });
 }

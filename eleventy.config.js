@@ -1,8 +1,6 @@
 import path from 'node:path';
 
-import { EleventyRenderPlugin as pluginRender } from '@11ty/eleventy';
 import { eleventyImageTransformPlugin as pluginImage } from '@11ty/eleventy-img';
-import pluginWebc from '@11ty/eleventy-plugin-webc';
 import {
   humanReadableDate,
   sortedByPublishDate,
@@ -20,13 +18,12 @@ import {
 } from './_11ty/filters.js';
 import { markdownLibrary } from './_11ty/libraries.js';
 import { collectionHostedProject } from './_11ty/collections.js';
-import { asMarkdown } from './_11ty/shortcodes.js';
+import { asMarkdown, clockTime } from './_11ty/shortcodes.js';
 
 /**
  *  @param {import("@11ty/eleventy/src/UserConfig")} eleventyConfig
  */
 export default async function (eleventyConfig) {
-  eleventyConfig.addPlugin(pluginRender);
   eleventyConfig.addPlugin(pluginImage, {
     extensions: 'html',
     formats: ['webp', 'jpeg'],
@@ -46,9 +43,6 @@ export default async function (eleventyConfig) {
       animated: true,
       limitInputPixels: false,
     },
-  });
-  eleventyConfig.addPlugin(pluginWebc, {
-    components: ['./src/_components/**/*.webc'],
   });
 
   eleventyConfig.addWatchTarget('./src/scss/**/*');
@@ -91,6 +85,7 @@ export default async function (eleventyConfig) {
   eleventyConfig.addFilter('projectFigures', projectFigures);
 
   eleventyConfig.addPairedShortcode('asMarkdown', asMarkdown);
+  eleventyConfig.addShortcode('clockTime', clockTime);
 
   eleventyConfig.setLibrary('md', markdownLibrary);
 

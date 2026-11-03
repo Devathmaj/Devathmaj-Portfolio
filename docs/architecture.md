@@ -6,7 +6,7 @@ How the site is assembled, from Markdown to a cached page in someone's browser.
 
 | Layer | Tool | Where |
 | --- | --- | --- |
-| Templates | Eleventy 3, Nunjucks, WebC | `src/**/*.njk`, `src/_components/*.webc` |
+| Templates | Eleventy 3, Nunjucks | `src/**/*.njk`, `src/_includes/components/*.njk` |
 | Content | Markdown + front matter | `src/content/` |
 | Styles | Sass (compressed, no source maps) | `src/scss/` |
 | Behaviour | ES modules bundled by Rollup | `src/js/` |
@@ -56,7 +56,8 @@ flow.
 
 `eleventy.config.js` wires up:
 
-- **Render plugin** and **WebC** (`src/_components/**/*.webc`).
+- **Nunjucks component partials** (`src/_includes/components/*.njk`) for the
+  home page sections and the persistent chrome.
 - **`@11ty/eleventy-img` transform** on HTML: WebP + JPEG, widths
   `auto/400/800/1400`, lazy loading and async decoding by default, file names
   like `name-800w.webp`.
@@ -109,7 +110,7 @@ inline-footnote rule.
 `layouts/base.njk` is the document shell. It emits the head (canonical, OG tags,
 font preloads, build id), the persistent chrome (page nav, footer, discovery
 notice, grid overlay), and a single `[data-taxi]` view wrapper around page
-content. `page-nav-data.webc` serialises navigation data for the client router.
+content. `page-nav-data.njk` serialises navigation data for the client router.
 
 Pages opt into the shell with front matter (`layout` defaults to `base.njk`).
 Project pages override it with `layouts/_project.njk`; experience records are

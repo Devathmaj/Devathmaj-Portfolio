@@ -39,7 +39,7 @@ can set:
 | `noindex` | Emits `<meta name="robots" content="noindex">` |
 | `meta.title` / `meta.description` | Override `<title>` and social copy |
 
-`page-nav-data.webc` serialises `backLink`, `backLinkText`, and `footerLinks` for
+`page-nav-data.njk` serialises `backLink`, `backLinkText`, and `footerLinks` for
 the router. It renders from the same values — don't hand-edit the JSON.
 
 ## Projects
@@ -199,7 +199,7 @@ filename, and `id` must be unique.
 
 ## Art shuffle
 
-The home page's artwork is defined in `src/_components/home-letter.webc`. Each
+The home page's artwork is defined in `src/_includes/components/home-letter.njk`. Each
 `<img data-shuffle-image>` is part of the shuffle:
 
 ```html

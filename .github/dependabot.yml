@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Kolkata
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    commit-message:
+      prefix: deps
+    labels:
+      - dependencies
+    groups:
+      # Minor and patch bumps land as one PR per dependency type so the
+      # review stays small. Majors arrive individually.
+      production-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      development-minor-patch:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch

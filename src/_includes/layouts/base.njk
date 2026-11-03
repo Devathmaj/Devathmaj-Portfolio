@@ -128,16 +128,12 @@
 
 <body class="no-js {% if bodyClass %}{{ bodyClass }}{% endif %}">
     {% include 'humanity.njk' %}
-    {% renderTemplate "webc", { backLink: backLink, backLinkText: backLinkText } %}
-        <page-nav :@back-link="backLink" :@back-link-text="backLinkText"></page-nav>
-    {% endrenderTemplate %}
+    {% include 'components/page-nav.njk' %}
     <div data-taxi class="router-target">
         <div data-taxi-view data-view="{{ canonical }}">
 
         {{ content | safe }}
-        {% renderTemplate "webc", { backLink: backLink, backLinkText: backLinkText, footerLinks: footerLinks } %}
-            <page-nav-data :@back-link="backLink" :@back-link-text="backLinkText" :@footer-links="footerLinks"></page-nav-data>
-        {% endrenderTemplate %}
+        {% include 'components/page-nav-data.njk' %}
         </div>
     </div>
     {% include 'footer.njk' %}

@@ -1,3 +1,0 @@
-<script id="page-nav-data" webc:keep type="application/json"
-    @raw="JSON.stringify({backLink: backLink || '/', backLinkText: backLinkText || 'go home', footerLinks: footerLinks})">
-</script>
