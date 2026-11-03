@@ -12,12 +12,31 @@ The Pages project should be configured to build with:
 
 - Build command: `npm run build`
 - Output directory: `_site`
-- Node: 22 (`NODE_VERSION` is set for the preview environment; Cloudflare's
-  default is fine for production, but stay on 22 to match local builds)
+- Node: 22. `NODE_VERSION=22` is currently set only on the *preview* environment,
+  which no longer builds anything, so production falls back to Cloudflare's
+  default. `package.json` declares `engines.node >= 22`, so pin `NODE_VERSION=22`
+  for production as well rather than depending on the platform default.
 
 The build output is self-contained: `_headers`, `_redirects`, `robots.txt`,
 `sitemap.xml`, static passthroughs, the asset manifest, and `sw.js` all land in
 `_site`.
+
+### Preview deployments are off
+
+Cloudflare's preview setting is `none` (`source.config.preview_deployment_setting`),
+so pushes to any branch other than `main` — including Dependabot pull requests —
+do **not** trigger a Pages build. Only `main` deploys.
+
+This is deliberate. Dependabot opens up to five PRs at once, and each one used
+to consume a full Pages build (six builds for six PRs, two of them failing).
+Pull requests are now validated by GitHub Actions instead
+(`.github/workflows/ci.yml` runs `npm run build` and `npm run test:contact`),
+which is the cheaper and faster signal. Nothing is deployed to Cloudflare until
+a change reaches `main`.
+
+To restore previews, set it back to `all` in the dashboard under
+**Settings → Builds & deployments → Preview deployments**, or use `custom` with
+`preview_branch_includes` if only some branches need one.
 
 > The old Direct Upload helper `npm run deploy` (`wrangler pages deploy _site`)
 > is not part of this workflow. Don't use it; a direct upload bypasses the Git
