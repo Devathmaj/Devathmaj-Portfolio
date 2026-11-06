@@ -1,6 +1,10 @@
 {
   "baseTitle": "Devathmaj A Kaliyathan",
-  "siteName": "Devathmaj",
+  "siteName": "Devathmaj AK",
+  "siteAlternateNames": [
+    "Devathmaj",
+    "Devathmaj Portfolio"
+  ],
   "ogImage": {
     "baseUrl": "https://devathmaj.me/meta/",
     "type": "image/png",

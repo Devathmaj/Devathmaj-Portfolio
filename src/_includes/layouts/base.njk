@@ -38,13 +38,15 @@
 
     {% if page.url === '/' %}
     {# Google uses the home page's WebSite node as the preferred site name.
-       Keep the brand name and URL aligned with og:site_name below. #}
+       Keep the brand name and URL aligned with og:site_name below.
+       Homepage-only by design: other pages inherit the same identity through
+       og:site_name, without repeating or conflicting WebSite nodes. #}
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "{{ site.siteName }}",
-      "alternateName": "Devathmaj AK",
+      "name": {{ site.siteName | dump | safe }},
+      "alternateName": {{ site.siteAlternateNames | dump | safe }},
       "url": "https://devathmaj.me/"
     }
     </script>
