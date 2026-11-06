@@ -7,7 +7,7 @@ export default [
     titleSplitIndex: 13,
     titleDivider: '—',
     titleDividerLength: 3,
-    role: 'Freelance Full-Stack Developer',
+    role: 'Freelance Software Engineer',
     period: 'Apr 2026 – Aug 2026',
     location: 'Kerala, India',
     visual: {
