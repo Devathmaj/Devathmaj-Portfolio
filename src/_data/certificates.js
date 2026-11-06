@@ -42,8 +42,28 @@ export default [
     imageHeight: 1237,
   },
   {
-    id: 'fabric-data-engineer-associate',
+    id: 'github-copilot',
     number: '03',
+    title: 'GitHub Copilot',
+    system: 'Microsoft Certified',
+    category: 'Professional certification',
+    issuer: 'Microsoft',
+    dateLabel: 'Earned',
+    date: '6 November 2026',
+    datetime: '2026-11-06',
+    expiry: '7 November 2028',
+    credentialLabel: 'Credential ID',
+    credential: 'E701134F52F6033E',
+    verify:
+      'https://learn.microsoft.com/en-us/users/devathmajakaliyathan-9531/credentials/e701134f52f6033e',
+    pdf: '/certificate/GH-300%20GitHub%20Copilot.pdf',
+    image: '/img/certificates/github-copilot.webp',
+    imageWidth: 1600,
+    imageHeight: 1131,
+  },
+  {
+    id: 'fabric-data-engineer-associate',
+    number: '04',
     title: 'Fabric Data Engineer Associate',
     system: 'Microsoft Certified',
     category: 'Professional certification',
@@ -63,7 +83,7 @@ export default [
   },
   {
     id: 'best-paper-award-raet-26',
-    number: '04',
+    number: '05',
     title: "Best Paper Award — RAET'26",
     system: 'RAET National Conference',
     category: 'Academic award',
@@ -79,7 +99,7 @@ export default [
   },
   {
     id: 'sql-associate',
-    number: '05',
+    number: '06',
     title: 'SQL Associate',
     system: 'DataCamp Certification',
     category: 'Professional certification',
@@ -97,7 +117,7 @@ export default [
   },
   {
     id: 'python-for-data-science',
-    number: '06',
+    number: '07',
     title: 'Python for Data Science',
     system: 'NPTEL Online Certification',
     category: 'Completed coursework',
@@ -116,7 +136,7 @@ export default [
   },
   {
     id: 'aws-cloud-technical-essentials',
-    number: '07',
+    number: '08',
     title: 'AWS Cloud Technical Essentials',
     system: 'Course Certificate',
     category: 'Completed coursework',
@@ -134,7 +154,7 @@ export default [
   },
   {
     id: 'google-cloud-fundamentals',
-    number: '08',
+    number: '09',
     title: 'Google Cloud Fundamentals: Core Infrastructure',
     system: 'Course Certificate',
     category: 'Completed coursework',
@@ -151,7 +171,7 @@ export default [
   },
   {
     id: 'github-foundations',
-    number: '09',
+    number: '10',
     title: 'GitHub Foundations',
     system: 'Statement of Accomplishment',
     category: 'Completed coursework',

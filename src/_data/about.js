@@ -109,10 +109,12 @@ export default {
   featuredCredentialIds: [
     'azure-ai-cloud-developer-associate',
     'aws-certified-ai-practitioner',
+    'github-copilot',
   ],
   credentialIcons: {
     'azure-ai-cloud-developer-associate': 'azure',
     'aws-certified-ai-practitioner': 'aws',
+    'github-copilot': 'github',
     'fabric-data-engineer-associate': 'azure',
     'sql-associate': 'database',
     'python-for-data-science': 'python',
